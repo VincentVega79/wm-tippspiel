@@ -112,7 +112,7 @@
         let currentLang = 'de';
         let currentUser = localStorage.getItem('wc_user') || '';
         let currentFilterPhase = 'group';
-        let isAdminMode = false;
+        let isAdminMode = false; // Standardmäßig STRENGSTENS AUS
         
         let serverData = {
             endrundeFreigeschaltet: false,
@@ -213,11 +213,18 @@
             return teamNames[code] ? (teamNames[code][currentLang] || code) : code;
         }
 
+        // ABSOLUT STRIDER INITIALISIERUNG
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
+            const navAdminBtn = document.getElementById('nav-admin');
+            
+            // HIER ERZWINGEN WIR DIE RECHTE-KONTROLLE
             if (urlParams.get('mode') === 'admin') {
                 isAdminMode = true;
-                document.getElementById('nav-admin').classList.remove('hidden');
+                if (navAdminBtn) navAdminBtn.classList.remove('hidden');
+            } else {
+                isAdminMode = false;
+                if (navAdminBtn) navAdminBtn.classList.add('hidden');
             }
             
             if (currentUser) {
@@ -228,7 +235,9 @@
             }
             
             switchLang(localStorage.getItem('wc_lang') || 'de');
-            renderMatches(); 
+            
+            // Standardmäßig IMMER die Tipps aufrufen, niemals den Admin-Tab offen stehen lassen!
+            showTab('tab-matches'); 
             loadDataFromServer(); 
         });
 
@@ -291,26 +300,31 @@
             }
         }
 
-        // BOMBENFESTE REITERSTEUERUNG (Keine Text-Ersetzungen mehr!)
+        // KORRIGIERTE REITERSTEUERUNG OHNE FEHLER-POTENZIAL
         function showTab(tabId) {
-            // Alle Tab-Inhalte ausblenden
+            // Sicherheitsnetz: Wenn jemand versucht den Admin-Tab im normalen Modus zu öffnen -> Abbrechen!
+            if (tabId === 'tab-admin' && !isAdminMode) {
+                tabId = 'tab-matches';
+            }
+
+            // Alle Inhalte verstecken
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             
-            // Gewünschten Tab einblenden
+            // Aktiven Inhalt einblenden
             const activeTab = document.getElementById(tabId);
             if (activeTab) activeTab.classList.remove('hidden');
             
-            // Buttons präzise zurücksetzen
+            // Buttons gezielt ansprechen
             const btnMatches = document.getElementById('nav-matches');
             const btnRanking = document.getElementById('nav-ranking');
             const btnAdmin = document.getElementById('nav-admin');
 
-            // Standard-Styles für inaktive Buttons zuweisen
+            // Reset Styles (Inaktiv-Modus)
             if(btnMatches) btnMatches.className = "px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300 transition-all";
             if(btnRanking) btnRanking.className = "px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300 transition-all";
             if(btnAdmin) btnAdmin.className = "px-4 py-2 rounded-xl text-sm font-medium bg-red-950 text-red-200 transition-all";
 
-            // Den geklickten Button hervorheben
+            // Präzises Aktiv-Styling anhand der genauen ID
             if (tabId === 'tab-matches' && btnMatches) {
                 btnMatches.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
             } else if (tabId === 'tab-ranking' && btnRanking) {

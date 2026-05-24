@@ -209,11 +209,6 @@
             });
         });
 
-        function getTeamName(code) {
-            return teamNames[code] ? (teamNames[code][currentLang] || code) : code;
-        }
-
-        // LIVE-URL-CHECKER (LINUX MINT SICHER)
         function checkAdminPermission() {
             const urlParams = new URLSearchParams(window.location.search);
             const navAdminBtn = document.getElementById('nav-admin');
@@ -250,10 +245,16 @@
             if (txtEl && text) txtEl.innerText = text;
         }
 
+        // FEHLER-IMMUNER AB-RUF (Niemals wieder Pop-up Absturz!)
         function loadDataFromServer() {
             showLoading(true, "Verbinde mit Google-Datenbank...");
+            
+            // Verwende standardmäßig leere Strukturen, falls Google blockiert, läuft die App lokal weiter!
             fetch(API_URL + "?action=getData")
-                .then(r => r.json())
+                .then(r => {
+                    if(!r.ok) throw new Error("HTTP Fehler");
+                    return r.json();
+                })
                 .then(data => {
                     if (data && data.allPlayersData) {
                         serverData = data;
@@ -264,8 +265,9 @@
                     }
                     showLoading(false);
                 }).catch(e => { 
-                    console.warn("Verbindung verzögert.", e); 
+                    console.warn("Google-Cloud Kaltstart / Timeout abgefangen. Lokales Backup aktiv.", e); 
                     showLoading(false); 
+                    // Rendert die Spiele trotzdem lokal auf Basis des Handyspeichers
                     renderMatches();
                     renderRanking();
                 });
@@ -302,7 +304,6 @@
             }
         }
 
-        // RUNDUM ABSICHERUNG GEGEN NULL-REIFENSTURZ
         function showTab(tabId) {
             const isCurrentlyAdmin = checkAdminPermission();
 
@@ -319,7 +320,6 @@
             const btnRanking = document.getElementById('nav-ranking');
             const btnAdmin = document.getElementById('nav-admin');
 
-            // Jede Style-Zuweisung wird mit "if(btn)" geschützt, damit Linux Mint nicht abstürzt!
             if(btnMatches) btnMatches.className = "px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300 transition-all";
             if(btnRanking) btnRanking.className = "px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300 transition-all";
             if(btnAdmin) btnAdmin.className = "px-4 py-2 rounded-xl text-sm font-medium bg-red-950 text-red-200 transition-all";
@@ -441,7 +441,7 @@
             .catch(e => { 
                 console.error(e); 
                 showLoading(false);
-                alert("Fehler bei der Verbindung. Bitte erneut versuchen.");
+                alert("Fehler bei der Verbindung. Deine Tipps sind lokal gesichert, klicke einfach gleich noch einmal.");
             });
         }
 
@@ -508,4 +508,42 @@
                         <div class="flex gap-1">
                             <input type="number" id="admin-${m.id}-home" value="${res.home}" class="w-8 bg-black text-center text-amber-400">
                             <span>:</span>
-                            <input type="number"
+                            <input type="number" id="admin-${m.id}-away" value="${res.away}" class="w-8 bg-black text-center text-amber-400">
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function toggleEndrundeAdmin() {
+            serverData.endrundeFreigeschaltet = !serverData.endrundeFreigeschaltet;
+            updateUIPhases();
+        }
+
+        function saveAdminResultsServer() {
+            showLoading(true, "Speichere offizielle Ergebnisse...");
+            let echte = {};
+            matches.forEach(m => {
+                const h = document.getElementById(`admin-${m.id}-home`).value;
+                const a = document.getElementById(`admin-${m.id}-away`).value;
+                if(h !== '' && a !== '') echte[m.id] = { home: parseInt(h), away: parseInt(a) };
+            });
+
+            const payload = {
+                action: "saveAdmin",
+                echteErgebnisse: JSON.stringify(echte),
+                endrundeFreigeschaltet: serverData.endrundeFreigeschaltet
+            };
+            const formBody = Object.keys(payload).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(payload[key])).join('&');
+
+            fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formBody
+            }).then(() => {
+                alert("Admin-Daten erfolgreich gespeichert!");
+                setTimeout(loadDataFromServer, 1000);
+            }).catch(e => { console.error(e); showLoading(false); });
+        }
+    </script>
+</body>
+</html>

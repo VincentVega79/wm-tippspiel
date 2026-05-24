@@ -37,56 +37,58 @@
             <span id="loading-text">Synchronisiere Spieldaten mit Datenbank...</span>
         </div>
 
+        <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 mb-6 flex flex-wrap justify-between items-center gap-4 shadow-xl">
+            <div>
+                <span class="text-xs text-gray-400 block uppercase tracking-wider data-lang" data-de="Spieler" data-en="Player"></span>
+                <span id="player-name-display" class="text-xl font-bold text-white">Gast / Guest</span>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="showTab('tab-matches')" id="nav-matches" class="px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all">⚽ Tipps</button>
+                <button onclick="showTab('tab-ranking')" id="nav-ranking" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300 transition-all data-lang" data-de="📊 Ranking" data-en="📊 Ranking"></button>
+                <button onclick="showTab('tab-admin')" id="nav-admin" class="px-4 py-2 rounded-xl text-sm font-medium bg-red-950 text-red-200 hidden">⚙️ Admin</button>
+            </div>
+        </div>
+
         <section id="setup-section" class="bg-[#111827] border border-slate-800 rounded-2xl p-6 mb-6 shadow-xl hidden">
             <h2 class="text-2xl font-semibold mb-2 text-amber-400 data-lang" data-de="Willkommen zum Familien-Tippspiel!" data-en="Welcome to the Family Predictor!"></h2>
             <p class="text-sm text-gray-400 mb-4 data-lang" data-de="Bitte gib deinen Namen ein. Deine Tipps werden zentral bei Sebastian Morgan gespeichert." data-en="Please enter your name. Your predictions will be stored centrally with Sebastian Morgan."></p>
             <div class="flex gap-2">
                 <input type="text" id="username-input" class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white w-full focus:outline-none focus:border-amber-400" placeholder="z.B. Opa Heinz">
-                <button onclick="saveUsername()" class="bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-bold px-6 py-3 rounded-xl transition data-lang" data-de="Starten" data-en="Start"></button>
+                <button onclick="saveUsername()" class="bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-bold px-6 py-3 rounded-xl transition-all data-lang" data-de="Starten" data-en="Start"></button>
             </div>
         </section>
 
-        <section id="dashboard-section" class="hidden">
-            <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 mb-6 flex flex-wrap justify-between items-center gap-4 shadow-xl">
-                <div>
-                    <span class="text-xs text-gray-400 block uppercase tracking-wider data-lang" data-de="Spieler" data-en="Player"></span>
-                    <span id="player-name-display" class="text-xl font-bold text-white"></span>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="showTab('tab-matches')" class="px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950" id="nav-matches" data-de="⚽ Tipps" data-en="⚽ Predictions"></button>
-                    <button onclick="showTab('tab-ranking')" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300" id="nav-ranking" data-de="📊 Ranking" data-en="📊 Ranking"></button>
-                    <button onclick="showTab('tab-admin')" id="nav-admin" class="px-4 py-2 rounded-xl text-sm font-medium bg-red-950 text-red-200 hidden">⚙️ Admin</button>
-                </div>
+        <div id="tab-matches" class="tab-content space-y-6">
+            <div class="flex gap-2 overflow-x-auto pb-2 border-b border-slate-800">
+                <button onclick="filterPhase('group')" id="phase-group" class="border border-amber-500/50 bg-amber-500/10 text-amber-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0 data-lang" data-de="Hauptrunde (72 Spiele)" data-en="Group Stage (72 Matches)"></button>
+                <button onclick="filterPhase('ko')" id="phase-ko" class="opacity-50 pointer-events-none border border-slate-700 text-gray-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0 data-lang" data-de="🔒 Endrunde" data-en="🔒 Knockout Stage"></button>
             </div>
 
-            <div id="tab-matches" class="tab-content space-y-6">
-                <div class="flex gap-2 overflow-x-auto pb-2 border-b border-slate-800">
-                    <button onclick="filterPhase('group')" id="phase-group" class="border border-amber-500/50 bg-amber-500/10 text-amber-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0 data-lang" data-de="Hauptrunde (72 Spiele)" data-en="Group Stage (72 Matches)"></button>
-                    <button onclick="filterPhase('ko')" id="phase-ko" class="opacity-50 pointer-events-none border border-slate-700 text-gray-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0 data-lang" data-de="🔒 Endrunde" data-en="🔒 Knockout Stage"></button>
+            <div id="matches-container" class="space-y-3">
                 </div>
 
-                <div id="matches-container" class="space-y-3"></div>
-
-                <div class="text-center pt-4">
-                    <button onclick="saveUserTipsServer()" class="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg transition w-full md:w-auto data-lang" data-de="💾 Tipps abschicken" data-en="💾 Submit Predictions"></button>
-                </div>
+            <div class="text-center pt-4">
+                <button onclick="saveUserTipsServer()" class="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg transition-all w-full md:w-auto data-lang" data-de="💾 Tipps abschicken" data-en="💾 Submit Predictions"></button>
             </div>
+        </div>
 
-            <div id="tab-ranking" class="tab-content hidden">
-                <div class="bg-[#111827] border border-slate-800 rounded-2xl p-6 shadow-xl">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold text-amber-400 data-lang" data-de="🏆 Live-Rangliste" data-en="🏆 Live Leaderboard"></h3>
-                        <button onclick="loadDataFromServer()" class="text-xs bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded-lg transition data-lang" data-de="🔄 Aktualisieren" data-en="🔄 Refresh"></button>
-                    </div>
-                    <div class="overflow-x-auto">
+        <div id="tab-ranking" class="tab-content hidden">
+            <div class="bg-[#111827] border border-slate-800 rounded-2xl p-6 shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-amber-400 data-lang" data-de="🏆 Live-Rangliste" data-en="🏆 Live Leaderboard"></h3>
+                    <button onclick="loadDataFromServer()" class="text-xs bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded-lg transition-all data-lang" data-de="🔄 Aktualisieren" data-en="🔄 Refresh"></button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-gray-400 text-sm">
+                                <th class="py-3 px-2 w-12 text-center">#</th>
+                                <th class="py-3 px-4 data-lang" data-de="Name" data-en="Name"></th>
+                                <th class="py-3 px-4 text-center data-lang" data-de="Punkte" data-en="Points"></th>
+                            </tr>
+                        </table>
+                        <div class="w-full text-center py-4 text-gray-500 text-sm hidden" id="no-players-msg">Noch keine Tipps eingetragen. / No tips submitted yet.</div>
                         <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="border-b border-slate-800 text-gray-400 text-sm">
-                                    <th class="py-3 px-2 w-12 text-center">#</th>
-                                    <th class="py-3 px-4 data-lang" data-de="Name" data-en="Name"></th>
-                                    <th class="py-3 px-4 text-center data-lang" data-de="Punkte" data-en="Points"></th>
-                                </tr>
-                            </thead>
                             <tbody id="ranking-table-body"></tbody>
                         </table>
                     </div>
@@ -104,11 +106,9 @@
                     <button onclick="saveAdminResultsServer()" class="mt-4 bg-gradient-to-r from-red-700 to-red-600 text-white font-bold px-4 py-3 rounded-xl w-full shadow-lg">Echte Ergebnisse speichern</button>
                 </div>
             </div>
-        </section>
-    </main>
+        </main>
 
     <script>
-        // Deine verifizierte API-URL
         const API_URL = "https://script.google.com/macros/s/AKfycbyzBHtBc8fvBRnOZ82LYS7eAk_m-f2qx4tLVc5df9JSUqJWoJ_RNxFyuUpBYbJM0Ghz/exec";
 
         let currentLang = 'de';
@@ -214,20 +214,24 @@
             return teamNames[code] ? (teamNames[code][currentLang] || code) : code;
         }
 
+        // START-LOGIK (Garantiert immer geladene Spiele)
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('mode') === 'admin') {
                 document.getElementById('nav-admin').classList.remove('hidden');
             }
             
+            // UI initialisieren und geordnete Struktur aufbauen
             if (currentUser) {
-                showDashboard();
+                document.getElementById('player-name-display').innerText = currentUser;
+                document.getElementById('setup-section').classList.add('hidden');
             } else {
                 document.getElementById('setup-section').classList.remove('hidden');
             }
             
             switchLang(localStorage.getItem('wc_lang') || 'de');
-            loadDataFromServer();
+            renderMatches(); // Zeigt die Spiele ab Sekunde 1
+            loadDataFromServer(); // Holt Daten im Hintergrund
         });
 
         function showLoading(show, text = "") {
@@ -238,7 +242,7 @@
         }
 
         function loadDataFromServer() {
-            showLoading(true, "Lade aktuelle Spieldaten von Google...");
+            showLoading(true, "Verbinde mit Google-Datenbank...");
             fetch(API_URL + "?action=getData")
                 .then(r => r.json())
                 .then(data => {
@@ -251,7 +255,7 @@
                     }
                     showLoading(false);
                 }).catch(e => { 
-                    console.warn("Nutze lokalen Backup-Speicher.", e); 
+                    console.warn("Kaltstart-Verzögerung. UI läuft im Offline-Backup.", e); 
                     showLoading(false); 
                     renderMatches();
                     renderRanking();
@@ -282,18 +286,11 @@
             if(input) {
                 currentUser = input; 
                 localStorage.setItem('wc_user', currentUser);
+                document.getElementById('player-name-display').innerText = currentUser;
                 document.getElementById('setup-section').classList.add('hidden');
-                showDashboard();
+                renderMatches();
                 loadDataFromServer();
             }
-        }
-
-        function showDashboard() {
-            const dbSection = document.getElementById('dashboard-section');
-            const nameDisplay = document.getElementById('player-name-display');
-            if (dbSection) dbSection.classList.remove('hidden');
-            if (nameDisplay) nameDisplay.innerText = currentUser;
-            renderMatches();
         }
 
         function showTab(tabId) {
@@ -335,13 +332,12 @@
             renderMatches();
         }
 
-        // LOKALES BACKUP-RENDERING
         function renderMatches() {
             const container = document.getElementById('matches-container');
             if(!container) return;
             container.innerHTML = '';
             
-            // Erst Serverdaten holen; falls leer, lokales Backup laden
+            // Sicheres Laden: Bezieht Daten aus der DB oder nutzt das geräteeigene Backup gegen Löschen
             const myPreds = serverData.allPlayersData[currentUser] || JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || {};
             const filtered = matches.filter(m => m.type === currentFilterPhase);
             
@@ -379,6 +375,7 @@
         }
 
         function trackLocalChange(matchId, side, value) {
+            if(!currentUser) return;
             let localKey = 'wc_backup_tips_' + currentUser;
             let currentBackup = JSON.parse(localStorage.getItem(localKey)) || {};
             if (!currentBackup[matchId]) currentBackup[matchId] = { home: '', away: '' };
@@ -387,9 +384,13 @@
         }
 
         function saveUserTipsServer() {
-            showLoading(true, "Sende Tipps an Google Tabelle...");
+            if(!currentUser) {
+                alert("Bitte trage zuerst oben deinen Namen ein!");
+                document.getElementById('setup-section').classList.remove('hidden');
+                return;
+            }
             
-            // Lade die aktuellsten Eingaben aus dem lokalen Backup
+            showLoading(true, "Speichere Tipps in Sebastian Morgans Tabelle...");
             let predictions = JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || serverData.allPlayersData[currentUser] || {}; 
 
             const payload = {
@@ -408,13 +409,13 @@
             .then(res => res.text())
             .then(txt => {
                 showLoading(false);
-                alert(currentLang === 'de' ? "🎉 Tipps wurden sicher in der Google Tabelle gespeichert!" : "🎉 Predictions successfully saved in Google Sheet!");
+                alert(currentLang === 'de' ? "🎉 Tipps wurden sicher übertragen!" : "🎉 Predictions successfully saved!");
                 loadDataFromServer();
             })
             .catch(e => { 
                 console.error(e); 
                 showLoading(false);
-                alert("Fehler bei der Verbindung. Bitte erneut versuchen.");
+                alert("Fehler bei der Verbindung. Deine Tipps sind lokal gesichert, versuche es gleich noch einmal.");
             });
         }
 
@@ -431,6 +432,7 @@
 
         function renderRanking() {
             const tbody = document.getElementById('ranking-table-body'); 
+            const msg = document.getElementById('no-players-msg');
             if(!tbody) return;
             tbody.innerHTML = '';
 
@@ -448,14 +450,22 @@
             if (currentUser && !serverData.allPlayersData[currentUser]) {
                 if (!leaderboard.some(p => p.name === currentUser)) leaderboard.push({ name: currentUser, points: 0 });
             }
+            
+            if(leaderboard.length === 0) {
+                if(msg) msg.classList.remove('hidden');
+                return;
+            } else {
+                if(msg) msg.classList.add('hidden');
+            }
+            
             leaderboard.sort((a,b) => b.points - a.points);
             
             leaderboard.forEach((p, idx) => {
                 tbody.innerHTML += `
-                    <tr class="border-b border-slate-800 text-sm hover:bg-slate-900/50">
-                        <td class="py-3 px-2 text-center font-bold ${idx===0?'text-amber-400':''}">${idx + 1}</td>
-                        <td class="py-3 px-4 font-medium">${p.name} ${p.name===currentUser?'(Du/You)':''}</td>
-                        <td class="py-3 px-4 text-center font-bold text-emerald-400">${p.points} Pts</td>
+                    <tr class="border-b border-slate-800 text-sm hover:bg-slate-900/50 w-full flex justify-between">
+                        <td class="py-3 px-4 font-bold w-12 text-center ${idx===0?'text-amber-400':''}">${idx + 1}</td>
+                        <td class="py-3 px-4 font-medium flex-grow text-left">${p.name} ${p.name===currentUser?'(Du/You)':''}</td>
+                        <td class="py-3 px-4 font-bold text-emerald-400 w-24 text-center">${p.points} Pts</td>
                     </tr>`;
             });
         }
@@ -472,4 +482,42 @@
                         <div class="flex gap-1">
                             <input type="number" id="admin-${m.id}-home" value="${res.home}" class="w-8 bg-black text-center text-amber-400">
                             <span>:</span>
-                            <input type
+                            <input type="number" id="admin-${m.id}-away" value="${res.away}" class="w-8 bg-black text-center text-amber-400">
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function toggleEndrundeAdmin() {
+            serverData.endrundeFreigeschaltet = !serverData.endrundeFreigeschaltet;
+            updateUIPhases();
+        }
+
+        function saveAdminResultsServer() {
+            showLoading(true, "Speichere offizielle Ergebnisse...");
+            let echte = {};
+            matches.forEach(m => {
+                const h = document.getElementById(`admin-${m.id}-home`).value;
+                const a = document.getElementById(`admin-${m.id}-away`).value;
+                if(h !== '' && a !== '') echte[m.id] = { home: parseInt(h), away: parseInt(a) };
+            });
+
+            const payload = {
+                action: "saveAdmin",
+                echteErgebnisse: JSON.stringify(echte),
+                endrundeFreigeschaltet: serverData.endrundeFreigeschaltet
+            };
+            const formBody = Object.keys(payload).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(payload[key])).join('&');
+
+            fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formBody
+            }).then(() => {
+                alert("Admin-Daten erfolgreich gespeichert!");
+                setTimeout(loadDataFromServer, 1000);
+            }).catch(e => { console.error(e); showLoading(false); });
+        }
+    </script>
+</body>
+</html>

@@ -108,6 +108,7 @@
     </main>
 
     <script>
+        // Deine verifizierte API-URL
         const API_URL = "https://script.google.com/macros/s/AKfycbyzBHtBc8fvBRnOZ82LYS7eAk_m-f2qx4tLVc5df9JSUqJWoJ_RNxFyuUpBYbJM0Ghz/exec";
 
         let currentLang = 'de';
@@ -250,7 +251,7 @@
                     }
                     showLoading(false);
                 }).catch(e => { 
-                    console.warn("Verbindung verzögert. Nutze Offline-Cache.", e); 
+                    console.warn("Nutze lokalen Backup-Speicher.", e); 
                     showLoading(false); 
                     renderMatches();
                     renderRanking();
@@ -334,13 +335,17 @@
             renderMatches();
         }
 
+        // LOKALES BACKUP-RENDERING
         function renderMatches() {
             const container = document.getElementById('matches-container');
             if(!container) return;
             container.innerHTML = '';
-            const myPreds = serverData.allPlayersData[currentUser] || {};
             
-            matches.filter(m => m.type === currentFilterPhase).forEach(m => {
+            // Erst Serverdaten holen; falls leer, lokales Backup laden
+            const myPreds = serverData.allPlayersData[currentUser] || JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || {};
+            const filtered = matches.filter(m => m.type === currentFilterPhase);
+            
+            filtered.forEach(m => {
                 const userTip = myPreds[m.id] || { home: '', away: '' };
                 const realResult = serverData.echteErgebnisse[m.id];
                 let badge = '';
@@ -365,28 +370,28 @@
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
                             ${badge}
-                            <input type="number" id="tip-${m.id}-home" value="${userTip.home}" class="w-12 bg-slate-900 border border-slate-700 rounded-lg py-1 text-center font-bold text-white focus:border-amber-400 focus:outline-none" placeholder="-">
+                            <input type="number" id="tip-${m.id}-home" value="${userTip.home}" oninput="trackLocalChange('${m.id}', 'home', this.value)" class="w-12 bg-slate-900 border border-slate-700 rounded-lg py-1 text-center font-bold text-white focus:border-amber-400 focus:outline-none" placeholder="-">
                             <span class="text-gray-600">:</span>
-                            <input type="number" id="tip-${m.id}-away" value="${userTip.away}" class="w-12 bg-slate-900 border border-slate-700 rounded-lg py-1 text-center font-bold text-white focus:border-amber-400 focus:outline-none" placeholder="-">
+                            <input type="number" id="tip-${m.id}-away" value="${userTip.away}" oninput="trackLocalChange('${m.id}', 'away', this.value)" class="w-12 bg-slate-900 border border-slate-700 rounded-lg py-1 text-center font-bold text-white focus:border-amber-400 focus:outline-none" placeholder="-">
                         </div>
                     </div>`;
             });
         }
 
-        // REPARIERTER DATEN-TRANSFERS ZUR GOOGLE-TABELLE
+        function trackLocalChange(matchId, side, value) {
+            let localKey = 'wc_backup_tips_' + currentUser;
+            let currentBackup = JSON.parse(localStorage.getItem(localKey)) || {};
+            if (!currentBackup[matchId]) currentBackup[matchId] = { home: '', away: '' };
+            currentBackup[matchId][side] = value !== '' ? parseInt(value) : '';
+            localStorage.setItem(localKey, JSON.stringify(currentBackup));
+        }
+
         function saveUserTipsServer() {
             showLoading(true, "Sende Tipps an Google Tabelle...");
             
-            let predictions = serverData.allPlayersData[currentUser] || {}; 
-            matches.filter(m => m.type === currentFilterPhase).forEach(m => {
-                const h = document.getElementById(`tip-${m.id}-home`)?.value;
-                const a = document.getElementById(`tip-${m.id}-away`)?.value;
-                if(h !== undefined && a !== undefined && h !== '' && a !== '') {
-                    predictions[m.id] = { home: parseInt(h), away: parseInt(a) };
-                }
-            });
+            // Lade die aktuellsten Eingaben aus dem lokalen Backup
+            let predictions = JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || serverData.allPlayersData[currentUser] || {}; 
 
-            // Vorbereitung als sauberes URL-Formularpaket, um CORS-Sperren zu umgehen
             const payload = {
                 action: "saveTips",
                 playerName: currentUser,
@@ -400,7 +405,7 @@
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: formBody
             })
-            .then(res => res.text()) // Wir warten auf echten Text von Google
+            .then(res => res.text())
             .then(txt => {
                 showLoading(false);
                 alert(currentLang === 'de' ? "🎉 Tipps wurden sicher in der Google Tabelle gespeichert!" : "🎉 Predictions successfully saved in Google Sheet!");
@@ -467,42 +472,4 @@
                         <div class="flex gap-1">
                             <input type="number" id="admin-${m.id}-home" value="${res.home}" class="w-8 bg-black text-center text-amber-400">
                             <span>:</span>
-                            <input type="number" id="admin-${m.id}-away" value="${res.away}" class="w-8 bg-black text-center text-amber-400">
-                        </div>
-                    </div>`;
-            });
-        }
-
-        function toggleEndrundeAdmin() {
-            serverData.endrundeFreigeschaltet = !serverData.endrundeFreigeschaltet;
-            updateUIPhases();
-        }
-
-        function saveAdminResultsServer() {
-            showLoading(true, "Speichere Admin-Ergebnisse...");
-            let echte = {};
-            matches.forEach(m => {
-                const h = document.getElementById(`admin-${m.id}-home`).value;
-                const a = document.getElementById(`admin-${m.id}-away`).value;
-                if(h !== '' && a !== '') echte[m.id] = { home: parseInt(h), away: parseInt(a) };
-            });
-
-            const payload = {
-                action: "saveAdmin",
-                echteErgebnisse: JSON.stringify(echte),
-                endrundeFreigeschaltet: serverData.endrundeFreigeschaltet
-            };
-            const formBody = Object.keys(payload).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(payload[key])).join('&');
-
-            fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: formBody
-            }).then(() => {
-                alert("Admin-Daten erfolgreich gespeichert!");
-                setTimeout(loadDataFromServer, 1000);
-            }).catch(e => { console.error(e); showLoading(false); });
-        }
-    </script>
-</body>
-</html>
+                            <input type

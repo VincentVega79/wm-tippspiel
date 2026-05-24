@@ -64,49 +64,47 @@
                 <button onclick="filterPhase('ko')" id="phase-ko" class="opacity-50 pointer-events-none border border-slate-700 text-gray-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0 data-lang" data-de="🔒 Endrunde" data-en="🔒 Knockout Stage"></button>
             </div>
 
-            <div id="matches-container" class="space-y-3">
-                </div>
+            <div id="matches-container" class="space-y-3"></div>
 
             <div class="text-center pt-4">
                 <button onclick="saveUserTipsServer()" class="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg transition-all w-full md:w-auto data-lang" data-de="💾 Tipps abschicken" data-en="💾 Submit Predictions"></button>
             </div>
         </div>
 
-        <div id="tab-ranking" class="tab-content hidden">
+        <div id="tab-ranking" class="tab-content hidden p-1">
             <div class="bg-[#111827] border border-slate-800 rounded-2xl p-6 shadow-xl">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold text-amber-400 data-lang" data-de="🏆 Live-Rangliste" data-en="🏆 Live Leaderboard"></h3>
                     <button onclick="loadDataFromServer()" class="text-xs bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded-lg transition-all data-lang" data-de="🔄 Aktualisieren" data-en="🔄 Refresh"></button>
                 </div>
                 <div class="overflow-x-auto">
+                    <div class="w-full text-center py-4 text-gray-500 text-sm hidden" id="no-players-msg">Noch keine Tipps eingetragen. / No tips submitted yet.</div>
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="border-b border-slate-800 text-gray-400 text-sm">
-                                <th class="py-3 px-2 w-12 text-center">#</th>
-                                <th class="py-3 px-4 data-lang" data-de="Name" data-en="Name"></th>
-                                <th class="py-3 px-4 text-center data-lang" data-de="Punkte" data-en="Points"></th>
+                                <th class="py-3 px-4 w-16 text-center">#</th>
+                                <th class="py-3 px-4 text-left data-lang" data-de="Name" data-en="Name"></th>
+                                <th class="py-3 px-4 w-24 text-center data-lang" data-de="Punkte" data-en="Points"></th>
                             </tr>
-                        </table>
-                        <div class="w-full text-center py-4 text-gray-500 text-sm hidden" id="no-players-msg">Noch keine Tipps eingetragen. / No tips submitted yet.</div>
-                        <table class="w-full text-left border-collapse">
-                            <tbody id="ranking-table-body"></tbody>
-                        </table>
-                    </div>
+                        </thead>
+                        <tbody id="ranking-table-body"></tbody>
+                    </table>
                 </div>
             </div>
+        </div>
 
-            <div id="tab-admin" class="tab-content hidden space-y-4">
-                <div class="bg-red-950/20 border border-red-900/50 rounded-2xl p-6 shadow-xl">
-                    <h3 class="text-xl font-bold mb-2 text-red-400">Admin-Zentrale</h3>
-                    <div class="mb-4 flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-800">
-                        <span class="text-sm text-gray-300">Status Endrunde:</span>
-                        <button onclick="toggleEndrundeAdmin()" id="admin-ko-status-btn" class="bg-red-700 text-white text-xs px-3 py-2 rounded-lg font-bold">Gesperrt</button>
-                    </div>
-                    <div id="admin-matches-container" class="space-y-2 max-h-96 overflow-y-auto pr-2"></div>
-                    <button onclick="saveAdminResultsServer()" class="mt-4 bg-gradient-to-r from-red-700 to-red-600 text-white font-bold px-4 py-3 rounded-xl w-full shadow-lg">Echte Ergebnisse speichern</button>
+        <div id="tab-admin" class="tab-content hidden space-y-4">
+            <div class="bg-red-950/20 border border-red-900/50 rounded-2xl p-6 shadow-xl">
+                <h3 class="text-xl font-bold mb-2 text-red-400">Admin-Zentrale</h3>
+                <div class="mb-4 flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-800">
+                    <span class="text-sm text-gray-300">Status Endrunde:</span>
+                    <button onclick="toggleEndrundeAdmin()" id="admin-ko-status-btn" class="bg-red-700 text-white text-xs px-3 py-2 rounded-lg font-bold">Gesperrt</button>
                 </div>
+                <div id="admin-matches-container" class="space-y-2 max-h-96 overflow-y-auto pr-2"></div>
+                <button onclick="saveAdminResultsServer()" class="mt-4 bg-gradient-to-r from-red-700 to-red-600 text-white font-bold px-4 py-3 rounded-xl w-full shadow-lg">Echte Ergebnisse speichern</button>
             </div>
-        </main>
+        </div>
+    </main>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbyzBHtBc8fvBRnOZ82LYS7eAk_m-f2qx4tLVc5df9JSUqJWoJ_RNxFyuUpBYbJM0Ghz/exec";
@@ -114,6 +112,7 @@
         let currentLang = 'de';
         let currentUser = localStorage.getItem('wc_user') || '';
         let currentFilterPhase = 'group';
+        let isAdminMode = false;
         
         let serverData = {
             endrundeFreigeschaltet: false,
@@ -214,14 +213,13 @@
             return teamNames[code] ? (teamNames[code][currentLang] || code) : code;
         }
 
-        // START-LOGIK (Garantiert immer geladene Spiele)
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('mode') === 'admin') {
+                isAdminMode = true;
                 document.getElementById('nav-admin').classList.remove('hidden');
             }
             
-            // UI initialisieren und geordnete Struktur aufbauen
             if (currentUser) {
                 document.getElementById('player-name-display').innerText = currentUser;
                 document.getElementById('setup-section').classList.add('hidden');
@@ -230,8 +228,8 @@
             }
             
             switchLang(localStorage.getItem('wc_lang') || 'de');
-            renderMatches(); // Zeigt die Spiele ab Sekunde 1
-            loadDataFromServer(); // Holt Daten im Hintergrund
+            renderMatches(); 
+            loadDataFromServer(); 
         });
 
         function showLoading(show, text = "") {
@@ -255,7 +253,7 @@
                     }
                     showLoading(false);
                 }).catch(e => { 
-                    console.warn("Kaltstart-Verzögerung. UI läuft im Offline-Backup.", e); 
+                    console.warn("Verbindung verzögert.", e); 
                     showLoading(false); 
                     renderMatches();
                     renderRanking();
@@ -293,17 +291,33 @@
             }
         }
 
+        // BOMBENFESTE REITERSTEUERUNG (Keine Text-Ersetzungen mehr!)
         function showTab(tabId) {
+            // Alle Tab-Inhalte ausblenden
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            // Gewünschten Tab einblenden
             const activeTab = document.getElementById(tabId);
             if (activeTab) activeTab.classList.remove('hidden');
             
-            ['nav-matches', 'nav-ranking', 'nav-admin'].forEach(t => {
-                const btn = document.getElementById(t);
-                if(btn) {
-                    btn.className = t === tabId.replace('tab-', 'nav-') ? "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950" : "px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300";
-                }
-            });
+            // Buttons präzise zurücksetzen
+            const btnMatches = document.getElementById('nav-matches');
+            const btnRanking = document.getElementById('nav-ranking');
+            const btnAdmin = document.getElementById('nav-admin');
+
+            // Standard-Styles für inaktive Buttons zuweisen
+            if(btnMatches) btnMatches.className = "px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300 transition-all";
+            if(btnRanking) btnRanking.className = "px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300 transition-all";
+            if(btnAdmin) btnAdmin.className = "px-4 py-2 rounded-xl text-sm font-medium bg-red-950 text-red-200 transition-all";
+
+            // Den geklickten Button hervorheben
+            if (tabId === 'tab-matches' && btnMatches) {
+                btnMatches.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
+            } else if (tabId === 'tab-ranking' && btnRanking) {
+                btnRanking.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
+            } else if (tabId === 'tab-admin' && btnAdmin && isAdminMode) {
+                btnAdmin.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
+            }
         }
 
         function updateUIPhases() {
@@ -337,7 +351,6 @@
             if(!container) return;
             container.innerHTML = '';
             
-            // Sicheres Laden: Bezieht Daten aus der DB oder nutzt das geräteeigene Backup gegen Löschen
             const myPreds = serverData.allPlayersData[currentUser] || JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || {};
             const filtered = matches.filter(m => m.type === currentFilterPhase);
             
@@ -385,7 +398,7 @@
 
         function saveUserTipsServer() {
             if(!currentUser) {
-                alert("Bitte trage zuerst oben deinen Namen ein!");
+                alert("Bitte trage zuerst deinen Namen ein!");
                 document.getElementById('setup-section').classList.remove('hidden');
                 return;
             }
@@ -415,7 +428,7 @@
             .catch(e => { 
                 console.error(e); 
                 showLoading(false);
-                alert("Fehler bei der Verbindung. Deine Tipps sind lokal gesichert, versuche es gleich noch einmal.");
+                alert("Fehler bei der Verbindung. Bitte erneut versuchen.");
             });
         }
 
@@ -463,7 +476,7 @@
             leaderboard.forEach((p, idx) => {
                 tbody.innerHTML += `
                     <tr class="border-b border-slate-800 text-sm hover:bg-slate-900/50 w-full flex justify-between">
-                        <td class="py-3 px-4 font-bold w-12 text-center ${idx===0?'text-amber-400':''}">${idx + 1}</td>
+                        <td class="py-3 px-4 font-bold w-16 text-center ${idx===0?'text-amber-400':''}">${idx + 1}</td>
                         <td class="py-3 px-4 font-medium flex-grow text-left">${p.name} ${p.name===currentUser?'(Du/You)':''}</td>
                         <td class="py-3 px-4 font-bold text-emerald-400 w-24 text-center">${p.points} Pts</td>
                     </tr>`;

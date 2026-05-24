@@ -112,7 +112,7 @@
         let currentLang = 'de';
         let currentUser = localStorage.getItem('wc_user') || '';
         let currentFilterPhase = 'group';
-        let isAdminMode = false; // Standardmäßig STRENGSTENS AUS
+        let isAdminMode = false;
         
         let serverData = {
             endrundeFreigeschaltet: false,
@@ -213,20 +213,23 @@
             return teamNames[code] ? (teamNames[code][currentLang] || code) : code;
         }
 
-        // ABSOLUT STRIDER INITIALISIERUNG
-        window.addEventListener('DOMContentLoaded', () => {
+        // LIVE-URL-CHECKER (LINUX MINT SICHER)
+        function checkAdminPermission() {
             const urlParams = new URLSearchParams(window.location.search);
             const navAdminBtn = document.getElementById('nav-admin');
             
-            // HIER ERZWINGEN WIR DIE RECHTE-KONTROLLE
             if (urlParams.get('mode') === 'admin') {
                 isAdminMode = true;
                 if (navAdminBtn) navAdminBtn.classList.remove('hidden');
+                return true;
             } else {
                 isAdminMode = false;
                 if (navAdminBtn) navAdminBtn.classList.add('hidden');
+                return false;
             }
-            
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
                 document.getElementById('player-name-display').innerText = currentUser;
                 document.getElementById('setup-section').classList.add('hidden');
@@ -235,8 +238,7 @@
             }
             
             switchLang(localStorage.getItem('wc_lang') || 'de');
-            
-            // Standardmäßig IMMER die Tipps aufrufen, niemals den Admin-Tab offen stehen lassen!
+            checkAdminPermission(); 
             showTab('tab-matches'); 
             loadDataFromServer(); 
         });
@@ -300,36 +302,33 @@
             }
         }
 
-        // KORRIGIERTE REITERSTEUERUNG OHNE FEHLER-POTENZIAL
+        // RUNDUM ABSICHERUNG GEGEN NULL-REIFENSTURZ
         function showTab(tabId) {
-            // Sicherheitsnetz: Wenn jemand versucht den Admin-Tab im normalen Modus zu öffnen -> Abbrechen!
-            if (tabId === 'tab-admin' && !isAdminMode) {
+            const isCurrentlyAdmin = checkAdminPermission();
+
+            if (tabId === 'tab-admin' && !isCurrentlyAdmin) {
                 tabId = 'tab-matches';
             }
 
-            // Alle Inhalte verstecken
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             
-            // Aktiven Inhalt einblenden
             const activeTab = document.getElementById(tabId);
             if (activeTab) activeTab.classList.remove('hidden');
             
-            // Buttons gezielt ansprechen
             const btnMatches = document.getElementById('nav-matches');
             const btnRanking = document.getElementById('nav-ranking');
             const btnAdmin = document.getElementById('nav-admin');
 
-            // Reset Styles (Inaktiv-Modus)
+            // Jede Style-Zuweisung wird mit "if(btn)" geschützt, damit Linux Mint nicht abstürzt!
             if(btnMatches) btnMatches.className = "px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300 transition-all";
             if(btnRanking) btnRanking.className = "px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300 transition-all";
             if(btnAdmin) btnAdmin.className = "px-4 py-2 rounded-xl text-sm font-medium bg-red-950 text-red-200 transition-all";
 
-            // Präzises Aktiv-Styling anhand der genauen ID
             if (tabId === 'tab-matches' && btnMatches) {
                 btnMatches.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
             } else if (tabId === 'tab-ranking' && btnRanking) {
                 btnRanking.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
-            } else if (tabId === 'tab-admin' && btnAdmin && isAdminMode) {
+            } else if (tabId === 'tab-admin' && btnAdmin && isCurrentlyAdmin) {
                 btnAdmin.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
             }
         }
@@ -509,42 +508,4 @@
                         <div class="flex gap-1">
                             <input type="number" id="admin-${m.id}-home" value="${res.home}" class="w-8 bg-black text-center text-amber-400">
                             <span>:</span>
-                            <input type="number" id="admin-${m.id}-away" value="${res.away}" class="w-8 bg-black text-center text-amber-400">
-                        </div>
-                    </div>`;
-            });
-        }
-
-        function toggleEndrundeAdmin() {
-            serverData.endrundeFreigeschaltet = !serverData.endrundeFreigeschaltet;
-            updateUIPhases();
-        }
-
-        function saveAdminResultsServer() {
-            showLoading(true, "Speichere offizielle Ergebnisse...");
-            let echte = {};
-            matches.forEach(m => {
-                const h = document.getElementById(`admin-${m.id}-home`).value;
-                const a = document.getElementById(`admin-${m.id}-away`).value;
-                if(h !== '' && a !== '') echte[m.id] = { home: parseInt(h), away: parseInt(a) };
-            });
-
-            const payload = {
-                action: "saveAdmin",
-                echteErgebnisse: JSON.stringify(echte),
-                endrundeFreigeschaltet: serverData.endrundeFreigeschaltet
-            };
-            const formBody = Object.keys(payload).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(payload[key])).join('&');
-
-            fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: formBody
-            }).then(() => {
-                alert("Admin-Daten erfolgreich gespeichert!");
-                setTimeout(loadDataFromServer, 1000);
-            }).catch(e => { console.error(e); showLoading(false); });
-        }
-    </script>
-</body>
-</html>
+                            <input type="number"

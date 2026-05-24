@@ -81,9 +81,9 @@
                     <div class="w-full text-center py-4 text-gray-500 text-sm hidden" id="no-players-msg">Noch keine Tipps eingetragen. / No tips submitted yet.</div>
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="border-b border-slate-800 text-gray-400 text-sm">
+                            <tr class="border-b border-slate-800 text-gray-400 text-sm flex justify-between w-full">
                                 <th class="py-3 px-4 w-16 text-center">#</th>
-                                <th class="py-3 px-4 text-left data-lang" data-de="Name" data-en="Name"></th>
+                                <th class="py-3 px-4 text-left data-lang flex-grow" data-de="Name" data-en="Name"></th>
                                 <th class="py-3 px-4 w-24 text-center data-lang" data-de="Punkte" data-en="Points"></th>
                             </tr>
                         </thead>
@@ -200,7 +200,7 @@
             {id:'ko_74', de:'Achtelfinale 2', en:'Round of 16 2', date: '04.07.2026', time: '21:00'},
             {id:'ko_88', de:'Viertelfinale 1', en:'Quarter-Final 1', date: '10.07.2026', time: '21:00'}, 
             {id:'ko_92', de:'Halbfinale 1', en:'Semi-Final 1', date: '14.07.2026', time: '21:00'}, 
-            {id:'ko_96', date: '19.07.2026', time: '21:00'}
+            {id:'ko_96', de:'Das Finale', en:'The Final', date: '19.07.2026', time: '21:00'}
         ];
         koLabels.forEach(ko => {
             matches.push({ 
@@ -208,6 +208,12 @@
                 labelDe: ko.de, labelEn: ko.en, date: ko.date, time: ko.time
             });
         });
+
+        // HIER WAR DER FEHLER: Die Namens-Übersetzungsfunktion fehlte völlig!
+        function getTeamName(code) {
+            if (!teamNames[code]) return code;
+            return teamNames[code][currentLang] || teamNames[code]['de'] || code;
+        }
 
         function checkAdminPermission() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -224,7 +230,6 @@
             }
         }
 
-        // REPARIERTE INITIALISIERUNG (Zeichnet Spiele SOFORT)
         window.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
                 document.getElementById('player-name-display').innerText = currentUser;
@@ -236,11 +241,9 @@
             switchLang(localStorage.getItem('wc_lang') || 'de');
             checkAdminPermission(); 
             
-            // WICHTIGSTE ÄNDERUNG: Spiele sofort auf den Bildschirm knallen!
             renderMatches(); 
             showTab('tab-matches'); 
             
-            // Jetzt erst im Hintergrund laden
             loadDataFromServer(); 
         });
 
@@ -259,13 +262,13 @@
                     if (data && data.allPlayersData) {
                         serverData = data;
                         updateUIPhases();
-                        renderMatches(); // Überschreibt die leeren Felder mit den Server-Werten
+                        renderMatches(); 
                         renderRanking();
                         renderAdminMatches();
                     }
                     showLoading(false);
                 }).catch(e => { 
-                    console.warn("Google antwortet verzögert. Keine Sorge – du kannst trotzdem normal tippen!", e); 
+                    console.warn("Google antwortet verzögert. Lokaler Modus aktiv.", e); 
                     showLoading(false); 
                 });
         }
@@ -413,7 +416,7 @@
                 return;
             }
             
-            showLoading(true, "Speichere Tipps in Sebastian Morgans Tabelle...");
+            showLoading(true, "Speichere Tipps in der Tabelle...");
             let predictions = JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || serverData.allPlayersData[currentUser] || {}; 
 
             const payload = {
@@ -432,13 +435,13 @@
             .then(res => res.text())
             .then(txt => {
                 showLoading(false);
-                alert(currentLang === 'de' ? "🎉 Tipps wurden sicher übertragen!" : "🎉 Predictions successfully saved!");
+                alert(currentLang === 'de' ? "🎉 Tipps wurden übertragen!" : "🎉 Predictions successfully saved!");
                 loadDataFromServer();
             })
             .catch(e => { 
                 console.error(e); 
                 showLoading(false);
-                alert("Fehler bei der Verbindung. Bitte erneut versuchen.");
+                alert("Verbindungsfehler, aber deine Tipps sind lokal auf dem Handy sicher verwahrt.");
             });
         }
 

@@ -200,7 +200,7 @@
             {id:'ko_74', de:'Achtelfinale 2', en:'Round of 16 2', date: '04.07.2026', time: '21:00'},
             {id:'ko_88', de:'Viertelfinale 1', en:'Quarter-Final 1', date: '10.07.2026', time: '21:00'}, 
             {id:'ko_92', de:'Halbfinale 1', en:'Semi-Final 1', date: '14.07.2026', time: '21:00'}, 
-            {id:'ko_96', de:'Das Finale', en:'The Final', date: '19.07.2026', time: '21:00'}
+            {id:'ko_96', date: '19.07.2026', time: '21:00'}
         ];
         koLabels.forEach(ko => {
             matches.push({ 
@@ -224,6 +224,7 @@
             }
         }
 
+        // REPARIERTE INITIALISIERUNG (Zeichnet Spiele SOFORT)
         window.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
                 document.getElementById('player-name-display').innerText = currentUser;
@@ -234,7 +235,12 @@
             
             switchLang(localStorage.getItem('wc_lang') || 'de');
             checkAdminPermission(); 
+            
+            // WICHTIGSTE ÄNDERUNG: Spiele sofort auf den Bildschirm knallen!
+            renderMatches(); 
             showTab('tab-matches'); 
+            
+            // Jetzt erst im Hintergrund laden
             loadDataFromServer(); 
         });
 
@@ -245,31 +251,22 @@
             if (txtEl && text) txtEl.innerText = text;
         }
 
-        // FEHLER-IMMUNER AB-RUF (Niemals wieder Pop-up Absturz!)
         function loadDataFromServer() {
             showLoading(true, "Verbinde mit Google-Datenbank...");
-            
-            // Verwende standardmäßig leere Strukturen, falls Google blockiert, läuft die App lokal weiter!
             fetch(API_URL + "?action=getData")
-                .then(r => {
-                    if(!r.ok) throw new Error("HTTP Fehler");
-                    return r.json();
-                })
+                .then(r => r.json())
                 .then(data => {
                     if (data && data.allPlayersData) {
                         serverData = data;
                         updateUIPhases();
-                        renderMatches();
+                        renderMatches(); // Überschreibt die leeren Felder mit den Server-Werten
                         renderRanking();
                         renderAdminMatches();
                     }
                     showLoading(false);
                 }).catch(e => { 
-                    console.warn("Google-Cloud Kaltstart / Timeout abgefangen. Lokales Backup aktiv.", e); 
+                    console.warn("Google antwortet verzögert. Keine Sorge – du kannst trotzdem normal tippen!", e); 
                     showLoading(false); 
-                    // Rendert die Spiele trotzdem lokal auf Basis des Handyspeichers
-                    renderMatches();
-                    renderRanking();
                 });
         }
 
@@ -441,7 +438,7 @@
             .catch(e => { 
                 console.error(e); 
                 showLoading(false);
-                alert("Fehler bei der Verbindung. Deine Tipps sind lokal gesichert, klicke einfach gleich noch einmal.");
+                alert("Fehler bei der Verbindung. Bitte erneut versuchen.");
             });
         }
 

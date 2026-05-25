@@ -107,7 +107,9 @@
     </main>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyzBHtBc8fvBRnOZ82LYS7eAk_m-f2qx4tLVc5df9JSUqJWoJ_RNxFyuUpBYbJM0Ghz/exec";
+        // Deine ausgelesenen Projektdaten von Supabase
+        const SUPABASE_URL = "https://ijvmbwubwshxmdmbyjwi.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_QzIiTXQP4J0WrrZGkXkVGw_QHpkpWnpxTk03S1pxTkdBME4wWGpCUU9RPT0=";
 
         let currentLang = 'de';
         let currentUser = localStorage.getItem('wc_user') || '';
@@ -209,7 +211,6 @@
             });
         });
 
-        // HIER WAR DER FEHLER: Die Namens-Übersetzungsfunktion fehlte völlig!
         function getTeamName(code) {
             if (!teamNames[code]) return code;
             return teamNames[code][currentLang] || teamNames[code]['de'] || code;
@@ -240,10 +241,8 @@
             
             switchLang(localStorage.getItem('wc_lang') || 'de');
             checkAdminPermission(); 
-            
             renderMatches(); 
             showTab('tab-matches'); 
-            
             loadDataFromServer(); 
         });
 
@@ -254,104 +253,95 @@
             if (txtEl && text) txtEl.innerText = text;
         }
 
-        function loadDataFromServer() {
-            showLoading(true, "Verbinde mit Google-Datenbank...");
-            fetch(API_URL + "?action=getData")
-                .then(r => r.json())
-                .then(data => {
-                    if (data && data.allPlayersData) {
-                        serverData = data;
-                        updateUIPhases();
-                        renderMatches(); 
-                        renderRanking();
-                        renderAdminMatches();
-                    }
-                    showLoading(false);
-                }).catch(e => { 
-                    console.warn("Google antwortet verzögert. Lokaler Modus aktiv.", e); 
-                    showLoading(false); 
+        // SUPABASE-DATEN DIREKT ABRUFEN
+        async function loadDataFromServer() {
+            showLoading(true, "Synchronisiere Live-Daten mit Supabase...");
+            try {
+                // 1. Tipps laden
+                let rTipps = await fetch(`${SUPABASE_URL}/rest/v1/tipps?select=*`, {
+                    headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
                 });
+                let tippsRows = await rTipps.json();
+                serverData.allPlayersData = {};
+                tippsRows.forEach(row => {
+                    serverData.allPlayersData[row.player_name] = row.predictions || {};
+                });
+
+                // 2. Admin Status laden
+                let rAdmin = await fetch(`${SUPABASE_URL}/rest/v1/admin_data?id=eq.1&select=*`, {
+                    headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+                });
+                let adminRows = await rAdmin.json();
+                if (adminRows && adminRows.length > 0) {
+                    serverData.echteErgebnisse = adminRows[0].echte_ergebnisse || {};
+                    serverData.endrundeFreigeschaltet = adminRows[0].endrunde_freigeschaltet || false;
+                }
+
+                updateUIPhases();
+                renderMatches(); 
+                renderRanking();
+                renderAdminMatches();
+            } catch (e) {
+                console.warn("Supabase-Abfrage fehlgeschlagen, arbeite lokal weiter.", e);
+            }
+            showLoading(false);
         }
 
         function switchLang(lang) {
             currentLang = lang; 
             localStorage.setItem('wc_lang', lang);
-            
             document.querySelectorAll('.data-lang').forEach(el => {
                 const translation = el.getAttribute(`data-${lang}`);
                 if (translation) el.innerText = translation;
             });
-            
-            const btnDe = document.getElementById('btn-de');
-            const btnEn = document.getElementById('btn-en');
+            const btnDe = document.getElementById('btn-de'); const btnEn = document.getElementById('btn-en');
             if(btnDe && btnEn) {
                 btnDe.className = lang === 'de' ? "px-2 py-1 rounded text-xs font-bold bg-amber-500 text-black" : "px-2 py-1 rounded text-xs font-bold bg-slate-700 text-white";
                 btnEn.className = lang === 'en' ? "px-2 py-1 rounded text-xs font-bold bg-amber-500 text-black" : "px-2 py-1 rounded text-xs font-bold bg-slate-700 text-white";
             }
-            renderMatches();
-            renderRanking();
+            renderMatches(); renderRanking();
         }
 
         function saveUsername() {
             const input = document.getElementById('username-input').value.trim();
             if(input) {
-                currentUser = input; 
-                localStorage.setItem('wc_user', currentUser);
+                currentUser = input; localStorage.setItem('wc_user', currentUser);
                 document.getElementById('player-name-display').innerText = currentUser;
                 document.getElementById('setup-section').classList.add('hidden');
-                renderMatches();
-                loadDataFromServer();
+                renderMatches(); loadDataFromServer();
             }
         }
 
         function showTab(tabId) {
             const isCurrentlyAdmin = checkAdminPermission();
-
-            if (tabId === 'tab-admin' && !isCurrentlyAdmin) {
-                tabId = 'tab-matches';
-            }
-
+            if (tabId === 'tab-admin' && !isCurrentlyAdmin) tabId = 'tab-matches';
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            
             const activeTab = document.getElementById(tabId);
             if (activeTab) activeTab.classList.remove('hidden');
-            
-            const btnMatches = document.getElementById('nav-matches');
-            const btnRanking = document.getElementById('nav-ranking');
-            const btnAdmin = document.getElementById('nav-admin');
-
+            const btnMatches = document.getElementById('nav-matches'); const btnRanking = document.getElementById('nav-ranking'); const btnAdmin = document.getElementById('nav-admin');
             if(btnMatches) btnMatches.className = "px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300 transition-all";
             if(btnRanking) btnRanking.className = "px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300 transition-all";
             if(btnAdmin) btnAdmin.className = "px-4 py-2 rounded-xl text-sm font-medium bg-red-950 text-red-200 transition-all";
-
-            if (tabId === 'tab-matches' && btnMatches) {
-                btnMatches.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
-            } else if (tabId === 'tab-ranking' && btnRanking) {
-                btnRanking.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
-            } else if (tabId === 'tab-admin' && btnAdmin && isCurrentlyAdmin) {
-                btnAdmin.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
-            }
+            if (tabId === 'tab-matches' && btnMatches) btnMatches.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
+            else if (tabId === 'tab-ranking' && btnRanking) btnRanking.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
+            else if (tabId === 'tab-admin' && btnAdmin && isCurrentlyAdmin) btnAdmin.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
         }
 
         function updateUIPhases() {
-            const btnKo = document.getElementById('phase-ko');
-            const adminBtn = document.getElementById('admin-ko-status-btn');
+            const btnKo = document.getElementById('phase-ko'); const adminBtn = document.getElementById('admin-ko-status-btn');
             if(!btnKo) return;
             if(serverData.endrundeFreigeschaltet) {
-                btnKo.classList.remove('opacity-50', 'pointer-events-none');
-                btnKo.innerText = currentLang === 'de' ? "🔥 Endrunde" : "🔥 Knockout Stage";
+                btnKo.classList.remove('opacity-50', 'pointer-events-none'); btnKo.innerText = currentLang === 'de' ? "🔥 Endrunde" : "🔥 Knockout Stage";
                 if(adminBtn) { adminBtn.innerText = "Freigeschaltet"; adminBtn.className = "bg-emerald-600 text-white text-xs px-3 py-2 rounded-lg font-bold"; }
             } else {
-                btnKo.classList.add('opacity-50', 'pointer-events-none');
-                btnKo.innerText = currentLang === 'de' ? "🔒 Endrunde" : "🔒 Knockout";
+                btnKo.classList.add('opacity-50', 'pointer-events-none'); btnKo.innerText = currentLang === 'de' ? "🔒 Endrunde" : "🔒 Knockout";
                 if(adminBtn) { adminBtn.innerText = "Gesperrt"; adminBtn.className = "bg-red-700 text-white text-xs px-3 py-2 rounded-lg font-bold"; }
             }
         }
 
         function filterPhase(phase) {
             currentFilterPhase = phase;
-            const btnGroup = document.getElementById('phase-group');
-            const btnKo = document.getElementById('phase-ko');
+            const btnGroup = document.getElementById('phase-group'); const btnKo = document.getElementById('phase-ko');
             if(btnGroup && btnKo) {
                 btnGroup.className = phase === 'group' ? "border border-amber-500/50 bg-amber-500/10 text-amber-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0" : "border border-slate-700 text-gray-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0";
                 btnKo.className = phase === 'ko' ? "border border-amber-500/50 bg-amber-500/10 text-amber-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0" : "border border-slate-700 text-gray-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0";
@@ -360,35 +350,20 @@
         }
 
         function renderMatches() {
-            const container = document.getElementById('matches-container');
-            if(!container) return;
+            const container = document.getElementById('matches-container'); if(!container) return;
             container.innerHTML = '';
-            
             const myPreds = serverData.allPlayersData[currentUser] || JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || {};
-            const filtered = matches.filter(m => m.type === currentFilterPhase);
-            
-            filtered.forEach(m => {
-                const userTip = myPreds[m.id] || { home: '', away: '' };
-                const realResult = serverData.echteErgebnisse[m.id];
-                let badge = '';
-                
+            matches.filter(m => m.type === currentFilterPhase).forEach(m => {
+                const userTip = myPreds[m.id] || { home: '', away: '' }; const realResult = serverData.echteErgebnisse[m.id]; let badge = '';
                 if (realResult) {
                     const pts = calculatePoints(userTip.home, userTip.away, realResult.home, realResult.away);
                     badge = `<span class="text-xs px-2 py-1 rounded-md font-bold ${pts===2?'bg-emerald-500 text-white':(pts===1?'bg-amber-500 text-black':'bg-red-500/20 text-red-400')}">${realResult.home}:${realResult.away} (${pts} Pts)</span>`;
                 }
-                
                 container.innerHTML += `
                     <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
                         <div class="flex flex-col items-center md:items-start w-full md:w-auto">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="text-xs text-amber-500 font-mono tracking-wider">${currentLang==='de'?m.labelDe:m.labelEn}</span>
-                                <span class="text-[10px] bg-slate-900 border border-slate-800 text-gray-400 px-1.5 py-0.5 rounded font-mono">📅 ${m.date} - ${m.time}</span>
-                            </div>
-                            <div class="flex items-center gap-3 mt-2 flex-wrap justify-center md:justify-start">
-                                <span class="font-bold text-base text-gray-100 tracking-wide">${getTeamName(m.team1)}</span>
-                                <span class="text-xs text-gray-500 px-1 font-serif">vs</span>
-                                <span class="font-bold text-base text-gray-100 tracking-wide">${getTeamName(m.team2)}</span>
-                            </div>
+                            <div class="flex items-center gap-2 flex-wrap"><span class="text-xs text-amber-500 font-mono tracking-wider">${currentLang==='de'?m.labelDe:m.labelEn}</span><span class="text-[10px] bg-slate-900 border border-slate-800 text-gray-400 px-1.5 py-0.5 rounded font-mono">📅 ${m.date} - ${m.time}</span></div>
+                            <div class="flex items-center gap-3 mt-2 flex-wrap justify-center md:justify-start"><span class="font-bold text-base text-gray-100 tracking-wide">${getTeamName(m.team1)}</span><span class="text-xs text-gray-500 px-1 font-serif">vs</span><span class="font-bold text-base text-gray-100 tracking-wide">${getTeamName(m.team2)}</span></div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
                             ${badge}
@@ -402,54 +377,39 @@
 
         function trackLocalChange(matchId, side, value) {
             if(!currentUser) return;
-            let localKey = 'wc_backup_tips_' + currentUser;
-            let currentBackup = JSON.parse(localStorage.getItem(localKey)) || {};
+            let localKey = 'wc_backup_tips_' + currentUser; let currentBackup = JSON.parse(localStorage.getItem(localKey)) || {};
             if (!currentBackup[matchId]) currentBackup[matchId] = { home: '', away: '' };
             currentBackup[matchId][side] = value !== '' ? parseInt(value) : '';
             localStorage.setItem(localKey, JSON.stringify(currentBackup));
         }
 
-        function saveUserTipsServer() {
-            if(!currentUser) {
-                alert("Bitte trage zuerst deinen Namen ein!");
-                document.getElementById('setup-section').classList.remove('hidden');
-                return;
-            }
-            
-            showLoading(true, "Speichere Tipps in der Tabelle...");
+        // SUPABASE POST/UPSERT FÜR USER TIPPS
+        async function saveUserTipsServer() {
+            if(!currentUser) return;
+            showLoading(true, "Speichere Tipps in Supabase Cloud...");
             let predictions = JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || serverData.allPlayersData[currentUser] || {}; 
 
-            const payload = {
-                action: "saveTips",
-                playerName: currentUser,
-                predictions: JSON.stringify(predictions)
-            };
-
-            const formBody = Object.keys(payload).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(payload[key])).join('&');
-
-            fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: formBody
-            })
-            .then(res => res.text())
-            .then(txt => {
-                showLoading(false);
-                alert(currentLang === 'de' ? "🎉 Tipps wurden übertragen!" : "🎉 Predictions successfully saved!");
+            try {
+                await fetch(`${SUPABASE_URL}/rest/v1/tipps`, {
+                    method: "POST",
+                    headers: { 
+                        "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`,
+                        "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates"
+                    },
+                    body: JSON.stringify({ player_name: currentUser, predictions: predictions })
+                });
+                alert(currentLang === 'de' ? "🎉 Tipps erfolgreich in Supabase gespeichert!" : "🎉 Predictions saved!");
                 loadDataFromServer();
-            })
-            .catch(e => { 
-                console.error(e); 
-                showLoading(false);
-                alert("Verbindungsfehler, aber deine Tipps sind lokal auf dem Handy sicher verwahrt.");
-            });
+            } catch (err) {
+                alert("Fehler bei der Übertragung.");
+            }
+            showLoading(false);
         }
 
         function calculatePoints(th, ta, rh, ra) {
             if(th === '' || ta === '' || th === undefined || th === null || ta === undefined || ta === null) return 0; 
             if(rh === undefined || ra === undefined || rh === null || ra === null) return 0;
-            const tipHome = parseInt(th); const tipAway = parseInt(ta);
-            const realHome = parseInt(rh); const realAway = parseInt(ra);
+            const tipHome = parseInt(th); const tipAway = parseInt(ta); const realHome = parseInt(rh); const realAway = parseInt(ra);
             if (tipHome === realHome && tipAway === realAway) return 2; 
             if ((tipHome - tipAway) === (realHome - realAway)) return 1; 
             if ((tipHome > tipAway && realHome > realAway) || (tipHome < tipAway && realHome < realAway)) return 1; 
@@ -457,35 +417,21 @@
         }
 
         function renderRanking() {
-            const tbody = document.getElementById('ranking-table-body'); 
-            const msg = document.getElementById('no-players-msg');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-
-            let leaderboard = [];
+            const tbody = document.getElementById('ranking-table-body'); const msg = document.getElementById('no-players-msg');
+            if(!tbody) return; tbody.innerHTML = ''; let leaderboard = [];
             Object.keys(serverData.allPlayersData).forEach(pName => {
-                let pts = 0;
-                const preds = serverData.allPlayersData[pName];
+                let pts = 0; const preds = serverData.allPlayersData[pName];
                 Object.keys(preds).forEach(mId => {
                     const real = serverData.echteErgebnisse[mId];
                     if(real) pts += calculatePoints(preds[mId].home, preds[mId].away, real.home, real.away);
                 });
                 leaderboard.push({ name: pName, points: pts });
             });
-            
             if (currentUser && !serverData.allPlayersData[currentUser]) {
                 if (!leaderboard.some(p => p.name === currentUser)) leaderboard.push({ name: currentUser, points: 0 });
             }
-            
-            if(leaderboard.length === 0) {
-                if(msg) msg.classList.remove('hidden');
-                return;
-            } else {
-                if(msg) msg.classList.add('hidden');
-            }
-            
+            if(leaderboard.length === 0) { if(msg) msg.classList.remove('hidden'); return; } else { if(msg) msg.classList.add('hidden'); }
             leaderboard.sort((a,b) => b.points - a.points);
-            
             leaderboard.forEach((p, idx) => {
                 tbody.innerHTML += `
                     <tr class="border-b border-slate-800 text-sm hover:bg-slate-900/50 w-full flex justify-between">
@@ -497,52 +443,43 @@
         }
 
         function renderAdminMatches() {
-            const container = document.getElementById('admin-matches-container'); 
-            if(!container) return;
-            container.innerHTML = '';
+            const container = document.getElementById('admin-matches-container'); if(!container) return; container.innerHTML = '';
             matches.forEach(m => {
                 const res = serverData.echteErgebnisse[m.id] || { home: '', away: '' };
                 container.innerHTML += `
                     <div class="bg-slate-900 p-2 rounded flex justify-between items-center text-xs border border-slate-800">
                         <span>${m.id.toUpperCase()} - ${getTeamName(m.team1)} vs ${getTeamName(m.team2)} (${m.date})</span>
-                        <div class="flex gap-1">
-                            <input type="number" id="admin-${m.id}-home" value="${res.home}" class="w-8 bg-black text-center text-amber-400">
-                            <span>:</span>
-                            <input type="number" id="admin-${m.id}-away" value="${res.away}" class="w-8 bg-black text-center text-amber-400">
-                        </div>
+                        <div class="flex gap-1"><input type="number" id="admin-${m.id}-home" value="${res.home}" class="w-8 bg-black text-center text-amber-400"><span>:</span><input type="number" id="admin-${m.id}-away" value="${res.away}" class="w-8 bg-black text-center text-amber-400"></div>
                     </div>`;
             });
         }
 
-        function toggleEndrundeAdmin() {
-            serverData.endrundeFreigeschaltet = !serverData.endrundeFreigeschaltet;
-            updateUIPhases();
-        }
+        function toggleEndrundeAdmin() { serverData.endrundeFreigeschaltet = !serverData.endrundeFreigeschaltet; updateUIPhases(); }
 
-        function saveAdminResultsServer() {
+        // SUPABASE POST/UPSERT FÜR ADMIN DATEN
+        async function saveAdminResultsServer() {
             showLoading(true, "Speichere offizielle Ergebnisse...");
             let echte = {};
             matches.forEach(m => {
-                const h = document.getElementById(`admin-${m.id}-home`).value;
-                const a = document.getElementById(`admin-${m.id}-away`).value;
+                const h = document.getElementById(`admin-${m.id}-home`).value; const a = document.getElementById(`admin-${m.id}-away`).value;
                 if(h !== '' && a !== '') echte[m.id] = { home: parseInt(h), away: parseInt(a) };
             });
 
-            const payload = {
-                action: "saveAdmin",
-                echteErgebnisse: JSON.stringify(echte),
-                endrundeFreigeschaltet: serverData.endrundeFreigeschaltet
-            };
-            const formBody = Object.keys(payload).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(payload[key])).join('&');
-
-            fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: formBody
-            }).then(() => {
-                alert("Admin-Daten erfolgreich gespeichert!");
-                setTimeout(loadDataFromServer, 1000);
-            }).catch(e => { console.error(e); showLoading(false); });
+            try {
+                await fetch(`${SUPABASE_URL}/rest/v1/admin_data`, {
+                    method: "POST",
+                    headers: { 
+                        "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`,
+                        "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates"
+                    },
+                    body: JSON.stringify({ id: 1, echte_ergebnisse: echte, endrunde_freigeschaltet: serverData.endrundeFreigeschaltet })
+                });
+                alert("Admin-Daten erfolgreich in Supabase gespeichert!");
+                loadDataFromServer();
+            } catch (e) {
+                console.error(e);
+            }
+            showLoading(false);
         }
     </script>
 </body>

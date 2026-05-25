@@ -25,7 +25,7 @@
     <header class="bg-[#0a192f] border-b border-[#d4af37]/30 p-4 sticky top-0 z-50 shadow-lg">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <h1 class="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-200 tracking-wider uppercase">
-                π World Cup 2026
+                &#127942; World Cup 2026
             </h1>
             <div class="flex items-center gap-3">
                 <button onclick="switchLang('de')" id="btn-de" class="px-2 py-1 rounded text-xs font-bold bg-amber-500 text-black">DE</button>
@@ -47,9 +47,9 @@
                 <span id="player-name-display" class="text-xl font-bold text-white">Gast / Guest</span>
             </div>
             <div class="flex gap-2">
-                <button onclick="showTab('tab-matches')" id="nav-matches" class="px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all">β½ Tipps</button>
-                <button onclick="showTab('tab-ranking')" id="nav-ranking" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300 transition-all">π Ranking</button>
-                <button onclick="showTab('tab-admin')" id="nav-admin" class="px-4 py-2 rounded-xl text-sm font-medium bg-red-950 text-red-200 hidden">βοΈ Admin</button>
+                <button onclick="showTab('tab-matches')" id="nav-matches" class="px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all">&#9917; Tipps</button>
+                <button onclick="showTab('tab-ranking')" id="nav-ranking" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300 transition-all">&#128202; Ranking</button>
+                <button onclick="showTab('tab-admin')" id="nav-admin" class="px-4 py-2 rounded-xl text-sm font-medium bg-red-950 text-red-200 hidden">&#9881;&#65039; Admin</button>
             </div>
         </div>
 
@@ -67,11 +67,11 @@
         <div id="tab-matches" class="tab-content space-y-6">
             <div class="flex gap-2 overflow-x-auto pb-2 border-b border-slate-800">
                 <button onclick="filterPhase('group')" id="phase-group" class="border border-amber-500/50 bg-amber-500/10 text-amber-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0">Hauptrunde (72 Spiele)</button>
-                <button onclick="filterPhase('ko')" id="phase-ko" class="opacity-50 pointer-events-none border border-slate-700 text-gray-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0">π Endrunde</button>
+                <button onclick="filterPhase('ko')" id="phase-ko" class="opacity-50 pointer-events-none border border-slate-700 text-gray-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0">&#128274; Endrunde</button>
             </div>
             <div id="matches-container" class="space-y-3"></div>
             <div class="text-center pt-4">
-                <button onclick="saveUserTipsServer()" id="submit-btn" class="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg transition-all w-full md:w-auto">πΎ Tipps abschicken</button>
+                <button onclick="saveUserTipsServer()" id="submit-btn" class="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg transition-all w-full md:w-auto">&#128190; Tipps abschicken</button>
             </div>
         </div>
 
@@ -79,8 +79,8 @@
         <div id="tab-ranking" class="tab-content hidden p-1">
             <div class="bg-[#111827] border border-slate-800 rounded-2xl p-6 shadow-xl">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold text-amber-400" id="ranking-title">π Live-Rangliste</h3>
-                    <button onclick="loadDataFromServer()" class="text-xs bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded-lg transition-all" id="refresh-btn">π Aktualisieren</button>
+                    <h3 class="text-xl font-bold text-amber-400" id="ranking-title">&#127942; Live-Rangliste</h3>
+                    <button onclick="loadDataFromServer()" class="text-xs bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded-lg transition-all" id="refresh-btn">&#128260; Aktualisieren</button>
                 </div>
                 <div class="overflow-x-auto">
                     <div class="w-full text-center py-4 text-gray-500 text-sm hidden" id="no-players-msg">Noch keine Tipps eingetragen. / No tips submitted yet.</div>
@@ -101,7 +101,7 @@
         <!-- Tab: Admin -->
         <div id="tab-admin" class="tab-content hidden space-y-4">
             <div class="bg-red-950/20 border border-red-900/50 rounded-2xl p-6 shadow-xl">
-                <h3 class="text-xl font-bold mb-4 text-red-400">βοΈ Admin-Zentrale</h3>
+                <h3 class="text-xl font-bold mb-4 text-red-400">&#9881;&#65039; Admin-Zentrale</h3>
                 <div class="mb-4 flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-800">
                     <span class="text-sm text-gray-300">Status Endrunde:</span>
                     <button onclick="toggleEndrundeAdmin()" id="admin-ko-status-btn" class="bg-red-700 text-white text-xs px-3 py-2 rounded-lg font-bold">Gesperrt</button>
@@ -114,12 +114,12 @@
     </main>
 
     <script>
-    // βββ KONFIGURATION ββββββββββββββββββββββββββββββββββββββββββββββββ
-    // jsonstorage.net: Kostenlos, kein Account, kein API-Key, CORS ΓΌberall
+    // \u2500\u2500\u2500 KONFIGURATION \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    // jsonstorage.net: Kostenlos, kein Account, kein API-Key, CORS \u00FCberall
     // Einmalig Setup:
-    //   1. Γffne https://www.jsonstorage.net/ im Browser
+    //   1. \u00D6ffne https://www.jsonstorage.net/ im Browser
     //   2. Klicke "Try it now" / erstelle einen neuen Item
-    //   3. FΓΌge folgenden JSON ein:
+    //   3. F\u00FCge folgenden JSON ein:
     //      {"allPlayersData":{},"echteErgebnisse":{},"endrundeFreigeschaltet":false}
     //   4. Nach dem Speichern bekommst du eine URL wie:
     //      https://api.jsonstorage.net/v1/json/xxx/yyy
@@ -127,7 +127,7 @@
     const API_URL = "https://api.jsonstorage.net/v1/json/4cc7d7a3-1b2e-4f53-9050-ffb508adde17";
     // Beispiel: const API_URL = "https://api.jsonstorage.net/v1/json/abc123/def456";
 
-    // βββ ZUSTAND ββββββββββββββββββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 ZUSTAND \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     let currentLang = localStorage.getItem('wc_lang') || 'de';
     let currentUser = localStorage.getItem('wc_user') || '';
     let currentFilterPhase = 'group';
@@ -139,11 +139,11 @@
         allPlayersData: {}
     };
 
-    // βββ TEAM-NAMEN βββββββββββββββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 TEAM-NAMEN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const teamNames = {
         "MEX": { de: "Mexiko",          en: "Mexico" },
-        "RSA": { de: "SΓΌdafrika",       en: "South Africa" },
-        "KOR": { de: "SΓΌdkorea",        en: "South Korea" },
+        "RSA": { de: "S\u00FCdafrika",       en: "South Africa" },
+        "KOR": { de: "S\u00FCdkorea",        en: "South Korea" },
         "CZE": { de: "Tschechien",      en: "Czechia" },
         "CAN": { de: "Kanada",          en: "Canada" },
         "BIH": { de: "Bosnien",         en: "Bosnia" },
@@ -156,17 +156,17 @@
         "USA": { de: "USA",             en: "USA" },
         "PAR": { de: "Paraguay",        en: "Paraguay" },
         "AUS": { de: "Australien",      en: "Australia" },
-        "TUR": { de: "TΓΌrkei",          en: "Turkey" },
+        "TUR": { de: "T\u00FCrkei",          en: "Turkey" },
         "GER": { de: "Deutschland",     en: "Germany" },
-        "CUW": { de: "CuraΓ§ao",         en: "CuraΓ§ao" },
-        "CIV": { de: "ElfenbeinkΓΌste",  en: "Ivory Coast" },
+        "CUW": { de: "Cura\u00E7ao",         en: "Cura\u00E7ao" },
+        "CIV": { de: "Elfenbeink\u00FCste",  en: "Ivory Coast" },
         "ECU": { de: "Ecuador",         en: "Ecuador" },
         "NED": { de: "Niederlande",     en: "Netherlands" },
         "JPN": { de: "Japan",           en: "Japan" },
         "SWE": { de: "Schweden",        en: "Sweden" },
         "TUN": { de: "Tunesien",        en: "Tunisia" },
         "BEL": { de: "Belgien",         en: "Belgium" },
-        "EGY": { de: "Γgypten",         en: "Egypt" },
+        "EGY": { de: "\u00C4gypten",         en: "Egypt" },
         "IRN": { de: "Iran",            en: "Iran" },
         "NZL": { de: "Neuseeland",      en: "New Zealand" },
         "ESP": { de: "Spanien",         en: "Spain" },
@@ -179,7 +179,7 @@
         "NOR": { de: "Norwegen",        en: "Norway" },
         "ARG": { de: "Argentinien",     en: "Argentina" },
         "ALG": { de: "Algerien",        en: "Algeria" },
-        "AUT": { de: "Γsterreich",      en: "Austria" },
+        "AUT": { de: "\u00D6sterreich",      en: "Austria" },
         "JOR": { de: "Jordanien",       en: "Jordan" },
         "POR": { de: "Portugal",        en: "Portugal" },
         "COD": { de: "DR Kongo",        en: "DR Congo" },
@@ -197,11 +197,11 @@
         return teamNames[code][currentLang] || teamNames[code]['de'] || code;
     }
 
-    // βββ SPIELDATEN βββββββββββββββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 SPIELDATEN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     // Gruppenphase: Spiele 1-32 (echte Ansetzungen)
     let matches = [
         // Gruppe A
-        { id:"match_1",  type:"group", team1:"MEX", team2:"RSA", labelDe:"Gruppe A - ErΓΆffnungsspiel", labelEn:"Group A - Opening Match", date:"11.06.2026", time:"21:00" },
+        { id:"match_1",  type:"group", team1:"MEX", team2:"RSA", labelDe:"Gruppe A - Er\u00F6ffnungsspiel", labelEn:"Group A - Opening Match", date:"11.06.2026", time:"21:00" },
         { id:"match_2",  type:"group", team1:"KOR", team2:"CZE", labelDe:"Gruppe A", labelEn:"Group A", date:"12.06.2026", time:"04:00" },
         { id:"match_3",  type:"group", team1:"MEX", team2:"KOR", labelDe:"Gruppe A", labelEn:"Group A", date:"19.06.2026", time:"03:00" },
         { id:"match_4",  type:"group", team1:"CZE", team2:"RSA", labelDe:"Gruppe A", labelEn:"Group A", date:"18.06.2026", time:"18:00" },
@@ -308,13 +308,13 @@
         { id:"ko_85",  de:"Halbfinale 1",    en:"Semi-Final 1",     date:"14.07.2026", time:"21:00" },
         { id:"ko_86",  de:"Halbfinale 2",    en:"Semi-Final 2",     date:"15.07.2026", time:"21:00" },
         { id:"ko_87",  de:"Spiel um Platz 3",en:"Third Place",      date:"18.07.2026", time:"21:00" },
-        { id:"ko_88",  de:"π Das Finale",   en:"π The Final",     date:"19.07.2026", time:"21:00" },
+        { id:"ko_88",  de:"\u1F3C6 Das Finale",   en:"\u1F3C6 The Final",     date:"19.07.2026", time:"21:00" },
     ];
     koMatches.forEach(ko => {
         matches.push({ id: ko.id, type: "ko", team1: "?", team2: "?", labelDe: ko.de, labelEn: ko.en, date: ko.date, time: ko.time });
     });
 
-    // βββ HILFSFUNKTIONEN βββββββββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 HILFSFUNKTIONEN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function showLoading(show, text) {
         const el = document.getElementById('loading-overlay');
         const tx = document.getElementById('loading-text');
@@ -352,7 +352,7 @@
         localStorage.setItem(key, JSON.stringify(cache));
     }
 
-    // βββ SPRACHE ββββββββββββββββββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 SPRACHE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function switchLang(lang) {
         currentLang = lang;
         localStorage.setItem('wc_lang', lang);
@@ -366,9 +366,9 @@
         document.getElementById('setup-title').textContent       = lang === 'de' ? 'Willkommen zum Familien-Tippspiel!' : 'Welcome to the Family Predictor!';
         document.getElementById('setup-desc').textContent        = lang === 'de' ? 'Bitte gib deinen Namen ein. Deine Tipps werden zentral gespeichert.' : 'Please enter your name. Your predictions will be stored centrally.';
         document.getElementById('setup-btn').textContent         = lang === 'de' ? 'Starten' : 'Start';
-        document.getElementById('submit-btn').textContent        = lang === 'de' ? 'πΎ Tipps abschicken' : 'πΎ Submit Predictions';
-        document.getElementById('ranking-title').textContent     = lang === 'de' ? 'π Live-Rangliste' : 'π Live Leaderboard';
-        document.getElementById('refresh-btn').textContent       = lang === 'de' ? 'π Aktualisieren' : 'π Refresh';
+        document.getElementById('submit-btn').textContent        = lang === 'de' ? '\u1F4BE Tipps abschicken' : '\u1F4BE Submit Predictions';
+        document.getElementById('ranking-title').textContent     = lang === 'de' ? '\u1F3C6 Live-Rangliste' : '\u1F3C6 Live Leaderboard';
+        document.getElementById('refresh-btn').textContent       = lang === 'de' ? '\u1F504 Aktualisieren' : '\u1F504 Refresh';
         document.getElementById('th-name').textContent           = lang === 'de' ? 'Name' : 'Name';
         document.getElementById('th-points').textContent         = lang === 'de' ? 'Punkte' : 'Points';
 
@@ -377,7 +377,7 @@
         renderRanking();
     }
 
-    // βββ TABS βββββββββββββββββββββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 TABS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function showTab(tabId) {
         if (tabId === 'tab-admin' && !isAdminMode) tabId = 'tab-matches';
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -398,7 +398,7 @@
         if (tabId === 'tab-admin')   renderAdminMatches();
     }
 
-    // βββ PHASE-FILTER βββββββββββββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 PHASE-FILTER \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function filterPhase(phase) {
         currentFilterPhase = phase;
         const gBtn = document.getElementById('phase-group');
@@ -410,7 +410,7 @@
         renderMatches();
     }
 
-    // βββ UI: PHASEN-STATUS ββββββββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 UI: PHASEN-STATUS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function updateUIPhases() {
         const kBtn    = document.getElementById('phase-ko');
         const adminBtn = document.getElementById('admin-ko-status-btn');
@@ -418,14 +418,14 @@
 
         if (serverData.endrundeFreigeschaltet) {
             kBtn.classList.remove('opacity-50', 'pointer-events-none');
-            kBtn.textContent = currentLang === 'de' ? 'π₯ Endrunde' : 'π₯ Knockout Stage';
+            kBtn.textContent = currentLang === 'de' ? '\u1F525 Endrunde' : '\u1F525 Knockout Stage';
             if (adminBtn) {
                 adminBtn.textContent  = 'Freigeschaltet';
                 adminBtn.className    = 'bg-emerald-600 text-white text-xs px-3 py-2 rounded-lg font-bold';
             }
         } else {
             kBtn.classList.add('opacity-50', 'pointer-events-none');
-            kBtn.textContent = currentLang === 'de' ? 'π Endrunde' : 'π Knockout Stage';
+            kBtn.textContent = currentLang === 'de' ? '\u1F512 Endrunde' : '\u1F512 Knockout Stage';
             if (adminBtn) {
                 adminBtn.textContent  = 'Gesperrt';
                 adminBtn.className    = 'bg-red-700 text-white text-xs px-3 py-2 rounded-lg font-bold';
@@ -433,7 +433,7 @@
         }
     }
 
-    // βββ SPIELE RENDERN βββββββββββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 SPIELE RENDERN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function renderMatches() {
         const container = document.getElementById('matches-container');
         if (!container) return;
@@ -468,7 +468,7 @@
                     <div class="flex flex-col items-center md:items-start w-full md:w-auto">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-xs text-amber-500 font-mono tracking-wider">${label}</span>
-                            <span class="text-[10px] bg-slate-900 border border-slate-800 text-gray-400 px-1.5 py-0.5 rounded font-mono">π ${m.date} - ${m.time}</span>
+                            <span class="text-[10px] bg-slate-900 border border-slate-800 text-gray-400 px-1.5 py-0.5 rounded font-mono">\u1F4C5 ${m.date} - ${m.time}</span>
                         </div>
                         <div class="flex items-center gap-3 mt-2 flex-wrap justify-center md:justify-start">
                             <span class="font-bold text-base text-gray-100 tracking-wide">${getTeamName(m.team1)}</span>
@@ -496,7 +496,7 @@
         });
     }
 
-    // βββ RANKING RENDERN ββββββββββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 RANKING RENDERN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function renderRanking() {
         const tbody = document.getElementById('ranking-table-body');
         const msg   = document.getElementById('no-players-msg');
@@ -526,7 +526,7 @@
 
         leaderboard.sort((a, b) => b.points - a.points);
         leaderboard.forEach((p, idx) => {
-            const medal = idx === 0 ? 'π₯' : idx === 1 ? 'π₯' : idx === 2 ? 'π₯' : `${idx + 1}.`;
+            const medal = idx === 0 ? '\u1F947' : idx === 1 ? '\u1F948' : idx === 2 ? '\u1F949' : `${idx + 1}.`;
             const isMe  = p.name === currentUser;
             tbody.innerHTML += `
                 <tr class="border-b border-slate-800 text-sm hover:bg-slate-900/50 ${isMe ? 'bg-amber-500/5' : ''}">
@@ -537,7 +537,7 @@
         });
     }
 
-    // βββ ADMIN: SPIELE RENDERN ββββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 ADMIN: SPIELE RENDERN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function renderAdminMatches() {
         const container = document.getElementById('admin-matches-container');
         if (!container) return;
@@ -558,16 +558,16 @@
         });
     }
 
-    // βββ ADMIN: ENDRUNDE TOGGLE βββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 ADMIN: ENDRUNDE TOGGLE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function toggleEndrundeAdmin() {
         serverData.endrundeFreigeschaltet = !serverData.endrundeFreigeschaltet;
         updateUIPhases();
     }
 
-    // βββ SERVER: DATEN LADEN ββββββββββββββββββββββββββββββββββββββββββ
-    // jsonstorage.net: GET ohne Auth, PUT ohne Auth, CORS ΓΌberall frei
+    // \u2500\u2500\u2500 SERVER: DATEN LADEN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    // jsonstorage.net: GET ohne Auth, PUT ohne Auth, CORS \u00FCberall frei
     async function loadDataFromServer() {
-        showLoading(true, currentLang === 'de' ? 'Synchronisiere Spieldatenβ¦' : 'Syncing dataβ¦');
+        showLoading(true, currentLang === 'de' ? 'Synchronisiere Spieldaten\u2026' : 'Syncing data\u2026');
         try {
             const res = await fetch(API_URL);
             if (res.ok) {
@@ -594,7 +594,7 @@
         showLoading(false);
     }
 
-    // βββ SERVER: DATEN SCHREIBEN (PUT) βββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 SERVER: DATEN SCHREIBEN (PUT) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function putToServer(payload) {
         const res = await fetch(API_URL, {
             method: 'PUT',
@@ -609,18 +609,18 @@
         return res;
     }
 
-    // βββ SERVER: TIPPS SENDEN βββββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 SERVER: TIPPS SENDEN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function saveUserTipsServer() {
         if (!currentUser) {
             alert(currentLang === 'de' ? 'Bitte trag zuerst deinen Namen ein!' : 'Please enter your name first!');
             return;
         }
-        showLoading(true, currentLang === 'de' ? 'Speichere Tipps in der Cloudβ¦' : 'Saving predictionsβ¦');
+        showLoading(true, currentLang === 'de' ? 'Speichere Tipps in der Cloud\u2026' : 'Saving predictions\u2026');
 
         const localTips = JSON.parse(localStorage.getItem('wc_tips_' + currentUser)) || {};
 
         try {
-            // Frische Daten laden, dann mergen (verhindert Γberschreiben anderer User)
+            // Frische Daten laden, dann mergen (verhindert \u00DCberschreiben anderer User)
             const freshRes = await fetch(API_URL);
             if (freshRes.ok) {
                 const fresh = await freshRes.json();
@@ -635,20 +635,20 @@
             await putToServer(serverData);
 
             alert(currentLang === 'de'
-                ? 'π Deine Tipps wurden erfolgreich gespeichert!'
-                : 'π Your predictions have been saved!');
+                ? '\u1F389 Deine Tipps wurden erfolgreich gespeichert!'
+                : '\u1F389 Your predictions have been saved!');
             await loadDataFromServer();
         } catch (err) {
             alert(currentLang === 'de'
-                ? 'β οΈ Fehler beim Γbertragen. Tipps sind lokal gesichert.'
-                : 'β οΈ Upload failed. Tips are saved locally.');
+                ? '\u26A0\uFE0F Fehler beim \u00DCbertragen. Tipps sind lokal gesichert.'
+                : '\u26A0\uFE0F Upload failed. Tips are saved locally.');
         }
         showLoading(false);
     }
 
-    // βββ SERVER: ADMIN-ERGEBNISSE SPEICHERN βββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 SERVER: ADMIN-ERGEBNISSE SPEICHERN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     async function saveAdminResultsServer() {
-        showLoading(true, 'Speichere offizielle Ergebnisseβ¦');
+        showLoading(true, 'Speichere offizielle Ergebnisse\u2026');
         const echte = {};
         matches.forEach(m => {
             const h = document.getElementById(`admin-${m.id}-home`);
@@ -661,15 +661,15 @@
 
         try {
             await putToServer(serverData);
-            alert('β Admin-Daten erfolgreich gespeichert!');
+            alert('\u2705 Admin-Daten erfolgreich gespeichert!');
             await loadDataFromServer();
         } catch (e) {
-            alert('β Fehler beim Speichern. PrΓΌfe ob API_URL korrekt eingetragen ist.');
+            alert('\u274C Fehler beim Speichern. Pr\u00FCfe ob API_URL korrekt eingetragen ist.');
         }
         showLoading(false);
     }
 
-    // βββ USERNAME βββββββββββββββββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 USERNAME \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function saveUsername() {
         const input = document.getElementById('username-input').value.trim();
         if (!input) return;
@@ -680,7 +680,7 @@
         loadDataFromServer();
     }
 
-    // βββ INIT βββββββββββββββββββββββββββββββββββββββββββββββββββββββββ
+    // \u2500\u2500\u2500 INIT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.addEventListener('DOMContentLoaded', () => {
         // Admin-Modus via URL-Parameter
         const params = new URLSearchParams(window.location.search);

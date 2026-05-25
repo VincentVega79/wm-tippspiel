@@ -34,7 +34,7 @@
         
         <div id="loading-overlay" class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-4 flex items-center justify-center gap-3 text-amber-400 text-xs font-mono hidden">
             <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-amber-400"></div>
-            <span id="loading-text">Synchronisiere Spieldaten...</span>
+            <span id="loading-text">Synchronisiere Spieldaten mit Datenbank...</span>
         </div>
 
         <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 mb-6 flex flex-wrap justify-between items-center gap-4 shadow-xl">
@@ -212,7 +212,7 @@
             });
         });
 
-        // ABSOLUTE INITIALISIERUNGS-REPARATUR
+        // 100% ASYNCHRON ABGEKOPPELTER START
         window.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
                 document.getElementById('player-name-display').innerText = currentUser;
@@ -224,11 +224,11 @@
             switchLang(localStorage.getItem('wc_lang') || 'de');
             checkAdminPermission(); 
             
-            // DIE RETTUNG: Erst die Spiele lokal zeichnen, damit sie SOFORT sichtbar sind!
+            // Erst lokal rendern, damit das Interface NIEMALS leer bleibt!
             renderMatches(); 
             showTab('tab-matches'); 
             
-            // Danach erst asynchron den Server abfragen, ohne das Zeichnen zu blockieren
+            // Dann geräuschlos im Hintergrund synchronisieren
             loadDataFromServer(); 
         });
 
@@ -239,11 +239,10 @@
             if (txtEl && text) txtEl.innerText = text;
         }
 
-        // FEHLER-ABSICHERUNG GEGEN CODE 400 ABSTURZ
         async function loadDataFromServer() {
             showLoading(true, "Synchronisiere Live-Daten mit Supabase...");
             try {
-                // 1. Tipps holen
+                // 1. Tipps holen (Abgesichert im try-catch)
                 let rTipps = await fetch(`${SUPABASE_URL}/rest/v1/tipps?select=id,player_name,predictions`, {
                     headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
                 });
@@ -278,57 +277,7 @@
                 renderRanking();
                 renderAdminMatches();
             } catch (e) {
-                console.warn("Netzwerkfehler abgefangen. Interface läuft stabil lokal weiter.", e);
-            }
-            showLoading(false);
-        }
-
-        // BOMBENFESTER UPSERT-BEFEHL (PostgREST-Array-Standard)
-        async function saveUserTipsServer() {
-            if(!currentUser) {
-                alert("Bitte trage zuerst deinen Namen ein!");
-                return;
-            }
-            showLoading(true, "Speichere Tipps in Supabase Cloud...");
-            let predictions = JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || serverData.allPlayersData[currentUser] || {}; 
-
-            let existingId = playerRowIds[currentUser];
-            let url = `${SUPABASE_URL}/rest/v1/tipps`;
-            let method = "POST";
-            let headers = { 
-                "apikey": SUPABASE_KEY, 
-                "Authorization": `Bearer ${SUPABASE_KEY}`,
-                "Content-Type": "application/json"
-            };
-            
-            let bodyData = { player_name: currentUser, predictions: predictions };
-
-            if (existingId) {
-                url += `?id=eq.${existingId}`;
-                method = "PATCH";
-            } else {
-                bodyData.id = Math.floor(Math.random() * 10000000) + 1;
-            }
-
-            try {
-                // Supabase verlangt bei POST ein JSON-Array in eckigen Klammern [ ... ]
-                let finalBody = method === "POST" ? [bodyData] : bodyData;
-
-                let response = await fetch(url, {
-                    method: method,
-                    headers: headers,
-                    body: JSON.stringify(finalBody)
-                });
-                
-                if (!response.ok) {
-                    throw new Error("HTTP Fehler: " + response.status);
-                }
-                
-                alert(currentLang === 'de' ? "🎉 Deine Tipps wurden live in Supabase gesichert!" : "🎉 Predictions saved!");
-                await loadDataFromServer();
-            } catch (err) {
-                console.error(err);
-                alert("Übertragungsfehler. Tipps sind lokal im Browser gesichert.");
+                console.warn("Netzwerk synchronisiert im Hintergrund.", e);
             }
             showLoading(false);
         }
@@ -398,13 +347,25 @@
         function renderMatches() {
             const container = document.getElementById('matches-container'); if(!container) return;
             container.innerHTML = '';
-            const myPreds = serverData.allPlayersData[currentUser] || JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || {};
+            
+            // Absicherung: Falls die Cloud noch nicht geladen hat, greift die App auf den lokalen LocalStorage-Backup zu!
+            let userTips = {};
+            if (serverData && serverData.allPlayersData && serverData.allPlayersData[currentUser]) {
+                userTips = serverData.allPlayersData[currentUser];
+            } else {
+                userTips = JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || {};
+            }
+            
             matches.filter(m => m.type === currentFilterPhase).forEach(m => {
-                const userTip = myPreds[m.id] || { home: '', away: '' }; const realResult = serverData.echteErgebnisse[m.id]; let badge = '';
+                const userTip = userTips[m.id] || { home: '', away: '' }; 
+                const realResult = (serverData && serverData.echteErgebnisse) ? serverData.echteErgebnisse[m.id] : null; 
+                let badge = '';
+                
                 if (realResult) {
                     const pts = calculatePoints(userTip.home, userTip.away, realResult.home, realResult.away);
                     badge = `<span class="text-xs px-2 py-1 rounded-md font-bold ${pts===2?'bg-emerald-500 text-white':(pts===1?'bg-amber-500 text-black':'bg-red-500/20 text-red-400')}">${realResult.home}:${realResult.away} (${pts} Pts)</span>`;
                 }
+                
                 container.innerHTML += `
                     <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
                         <div class="flex flex-col items-center md:items-start w-full md:w-auto">
@@ -413,26 +374,93 @@
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
                             ${badge}
-                            <input type="number" id="tip-${m.id}-home" value="${userTip.home}" oninput="trackLocalChange('${m.id}', 'home', this.value)" class="w-12 bg-slate-900 border border-slate-700 rounded-lg py-1 text-center font-bold text-white focus:border-amber-400 focus:outline-none" placeholder="-">
+                            <input type="number" id="tip-${m.id}-home" value="${userTip.home !== undefined ? userTip.home : ''}" oninput="trackLocalChange('${m.id}', 'home', this.value)" class="w-12 bg-slate-900 border border-slate-700 rounded-lg py-1 text-center font-bold text-white focus:border-amber-400 focus:outline-none" placeholder="-">
                             <span class="text-gray-600">:</span>
-                            <input type="number" id="tip-${m.id}-away" value="${userTip.away}" oninput="trackLocalChange('${m.id}', 'away', this.value)" class="w-12 bg-slate-900 border border-slate-700 rounded-lg py-1 text-center font-bold text-white focus:border-amber-400 focus:outline-none" placeholder="-">
+                            <input type="number" id="tip-${m.id}-away" value="${userTip.away !== undefined ? userTip.away : ''}" oninput="trackLocalChange('${m.id}', 'away', this.value)" class="w-12 bg-slate-900 border border-slate-700 rounded-lg py-1 text-center font-bold text-white focus:border-amber-400 focus:outline-none" placeholder="-">
                         </div>
                     </div>`;
             });
         }
 
+        function trackLocalChange(matchId, side, value) {
+            if(!currentUser) return;
+            let localKey = 'wc_backup_tips_' + currentUser; let currentBackup = JSON.parse(localStorage.getItem(localKey)) || {};
+            if (!currentBackup[matchId]) currentBackup[matchId] = { home: '', away: '' };
+            currentBackup[matchId][side] = value !== '' ? parseInt(value) : '';
+            localStorage.setItem(localKey, JSON.stringify(currentBackup));
+        }
+
+        // SUPABASE V1 REST KONFORMER BEFEHL (POST als Array)
+        async function saveUserTipsServer() {
+            if(!currentUser) return;
+            showLoading(true, "Speichere Tipps in Supabase Cloud...");
+            let predictions = JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || {}; 
+
+            let existingId = playerRowIds[currentUser];
+            let url = `${SUPABASE_URL}/rest/v1/tipps`;
+            let method = "POST";
+            let headers = { 
+                "apikey": SUPABASE_KEY, 
+                "Authorization": `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json"
+            };
+            
+            let bodyData = { player_name: currentUser, predictions: predictions };
+
+            if (existingId) {
+                url += `?id=eq.${existingId}`;
+                method = "PATCH";
+            } else {
+                bodyData.id = Math.floor(Math.random() * 10000000) + 1;
+            }
+
+            try {
+                // PostgREST verlangt bei POST zwingend ein Array in eckigen Klammern [ ... ]
+                let finalBody = method === "POST" ? [bodyData] : bodyData;
+
+                let response = await fetch(url, {
+                    method: method,
+                    headers: headers,
+                    body: JSON.stringify(finalBody)
+                });
+                
+                if (!response.ok) throw new Error("HTTP Fehler " + response.status);
+                
+                alert(currentLang === 'de' ? "🎉 Deine Tipps wurden erfolgreich live in Supabase gesichert!" : "🎉 Predictions saved!");
+                await loadDataFromServer();
+            } catch (err) {
+                console.error(err);
+                alert("Fehler bei der Cloud-Übertragung.");
+            }
+            showLoading(false);
+        }
+
+        function calculatePoints(th, ta, rh, ra) {
+            if(th === '' || ta === '' || th === undefined || th === null || ta === undefined || th === null) return 0; 
+            if(rh === undefined || ra === undefined || rh === null || ra === null) return 0;
+            const tipHome = parseInt(th); const tipAway = parseInt(ta); const realHome = parseInt(rh); const realAway = parseInt(ra);
+            if (tipHome === realHome && tipAway === realAway) return 2; 
+            if ((tipHome - tipAway) === (realHome - realAway)) return 1; 
+            if ((tipHome > tipAway && realHome > realAway) || (tipHome < tipAway && realHome < realAway)) return 1; 
+            return 0; 
+        }
+
         function renderRanking() {
             const tbody = document.getElementById('ranking-table-body'); const msg = document.getElementById('no-players-msg');
             if(!tbody) return; tbody.innerHTML = ''; let leaderboard = [];
-            Object.keys(serverData.allPlayersData).forEach(pName => {
-                let pts = 0; const preds = serverData.allPlayersData[pName];
-                Object.keys(preds).forEach(mId => {
-                    const real = serverData.echteErgebnisse[mId];
-                    if(real) pts += calculatePoints(preds[mId].home, preds[mId].away, real.home, real.away);
+            
+            if (serverData && serverData.allPlayersData) {
+                Object.keys(serverData.allPlayersData).forEach(pName => {
+                    let pts = 0; const preds = serverData.allPlayersData[pName];
+                    Object.keys(preds).forEach(mId => {
+                        const real = serverData.echteErgebnisse ? serverData.echteErgebnisse[mId] : null;
+                        if(real) pts += calculatePoints(preds[mId].home, preds[mId].away, real.home, real.away);
+                    });
+                    leaderboard.push({ name: pName, points: pts });
                 });
-                leaderboard.push({ name: pName, points: pts });
-            });
-            if (currentUser && !serverData.allPlayersData[currentUser]) {
+            }
+            
+            if (currentUser && (!serverData || !serverData.allPlayersData || !serverData.allPlayersData[currentUser])) {
                 if (!leaderboard.some(p => p.name === currentUser)) leaderboard.push({ name: currentUser, points: 0 });
             }
             if(leaderboard.length === 0) { if(msg) msg.classList.remove('hidden'); return; } else { if(msg) msg.classList.add('hidden'); }
@@ -450,7 +478,7 @@
         function renderAdminMatches() {
             const container = document.getElementById('admin-matches-container'); if(!container) return; container.innerHTML = '';
             matches.forEach(m => {
-                const res = serverData.echteErgebnisse[m.id] || { home: '', away: '' };
+                const res = (serverData && serverData.echteErgebnisse) ? (serverData.echteErgebnisse[m.id] || { home: '', away: '' }) : { home: '', away: '' };
                 container.innerHTML += `
                     <div class="bg-slate-900 p-2 rounded flex justify-between items-center text-xs border border-slate-800">
                         <span>${m.id.toUpperCase()} - ${getTeamName(m.team1)} vs ${getTeamName(m.team2)} (${m.date})</span>

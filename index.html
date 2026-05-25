@@ -215,11 +215,11 @@
             switchLang(localStorage.getItem('wc_lang') || 'de');
             checkAdminPermission(); 
             
-            // Erst lokal rendern (Spiele stehen sofort)
+            // Erst lokal rendern (Spiele stehen sofort da!)
             renderMatches(); 
             showTab('tab-matches'); 
             
-            // Dann asynchron synchronisieren
+            // Erst danach die Cloud anfragen
             loadDataFromServer();
         });
 
@@ -233,7 +233,7 @@
         async function loadDataFromServer() {
             showLoading(true, "Synchronisiere Spieldaten...");
             try {
-                // Lineare URL statt verschachtelter Funktion, um Abstürze zu verhindern
+                // Feste URL zur Vermeidung von Aufruffehlern
                 let res = await fetch(`https://api.npoint.io/${BIN_ID}?nocache=${new Date().getTime()}`);
                 if (res.ok) {
                     let data = await res.json();
@@ -352,6 +352,7 @@
             }
             
             matches.filter(m => m.type === currentFilterPhase).forEach(m => {
+                // FIX: Sauberer Aufruf ohne doppelte Zuweisung!
                 const userTip = userTips[m.id] || { home: '', away: '' }; 
                 const realResult = (serverData && serverData.echteErgebnisse) ? serverData.echteErgebnisse[m.id] : null; 
                 let badge = '';

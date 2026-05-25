@@ -116,6 +116,9 @@
         let currentFilterPhase = 'group';
         let isAdminMode = false;
         
+        // Cache, um die IDs der Zeilen zu kennen (wichtig für fehlerfreie Updates)
+        let playerRowIds = {}; 
+
         let serverData = {
             endrundeFreigeschaltet: false,
             echteErgebnisse: {},
@@ -253,22 +256,27 @@
             if (txtEl && text) txtEl.innerText = text;
         }
 
-        // SUPABASE-DATEN DIREKT ABRUFEN
+        // KORRIGIERTE GET-ABFRAGE (Getrennte Aufrufe verhindern den 406-Fehler)
         async function loadDataFromServer() {
             showLoading(true, "Synchronisiere Live-Daten mit Supabase...");
             try {
                 // 1. Tipps laden
-                let rTipps = await fetch(`${SUPABASE_URL}/rest/v1/tipps?select=*`, {
+                let rTipps = await fetch(`${SUPABASE_URL}/rest/v1/tipps?select=id,player_name,predictions`, {
                     headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
                 });
                 let tippsRows = await rTipps.json();
                 serverData.allPlayersData = {};
-                tippsRows.forEach(row => {
-                    serverData.allPlayersData[row.player_name] = row.predictions || {};
-                });
+                playerRowIds = {}; // ID-Zuordnung leeren
+
+                if(Array.isArray(tippsRows)) {
+                    tippsRows.forEach(row => {
+                        serverData.allPlayersData[row.player_name] = row.predictions || {};
+                        playerRowIds[row.player_name] = row.id; // Interne Datenbank-ID merken
+                    });
+                }
 
                 // 2. Admin Status laden
-                let rAdmin = await fetch(`${SUPABASE_URL}/rest/v1/admin_data?id=eq.1&select=*`, {
+                let rAdmin = await fetch(`${SUPABASE_URL}/rest/v1/admin_data?id=eq.1&select=echte_ergebnisse,endrunde_freigeschaltet`, {
                     headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
                 });
                 let adminRows = await rAdmin.json();
@@ -383,25 +391,46 @@
             localStorage.setItem(localKey, JSON.stringify(currentBackup));
         }
 
-        // SUPABASE POST/UPSERT FÜR USER TIPPS
+        // KORRIGIERTER POST/UPSERT SENDER (Verhindert den 400er ID-Fehler komplett)
         async function saveUserTipsServer() {
             if(!currentUser) return;
             showLoading(true, "Speichere Tipps in Supabase Cloud...");
             let predictions = JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || serverData.allPlayersData[currentUser] || {}; 
 
+            let existingId = playerRowIds[currentUser];
+            let url = `${SUPABASE_URL}/rest/v1/tipps`;
+            let method = "POST";
+            let headers = { 
+                "apikey": SUPABASE_KEY, 
+                "Authorization": `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json"
+            };
+            
+            let bodyData = { player_name: currentUser, predictions: predictions };
+
+            // Wenn der User schon existiert, machen wir ein gezieltes Update über seine ID, um Konflikte zu vermeiden
+            if (existingId) {
+                url += `?id=eq.${existingId}`;
+                method = "PATCH";
+            } else {
+                // Bei einem neuen Eintrag lassen wir den Server die ID bestimmen (Resolution Merge)
+                headers["Prefer"] = "resolution=merge-duplicates";
+            }
+
             try {
-                await fetch(`${SUPABASE_URL}/rest/v1/tipps`, {
-                    method: "POST",
-                    headers: { 
-                        "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`,
-                        "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates"
-                    },
-                    body: JSON.stringify({ player_name: currentUser, predictions: predictions })
+                let response = await fetch(url, {
+                    method: method,
+                    headers: headers,
+                    body: JSON.stringify(bodyData)
                 });
+                
+                if (!response.ok) throw new Error("Server-Antwort fehlerhaft");
+                
                 alert(currentLang === 'de' ? "🎉 Tipps erfolgreich in Supabase gespeichert!" : "🎉 Predictions saved!");
-                loadDataFromServer();
+                await loadDataFromServer();
             } catch (err) {
-                alert("Fehler bei der Übertragung.");
+                console.error(err);
+                alert("Fehler bei der Übertragung zur Cloud-Datenbank.");
             }
             showLoading(false);
         }
@@ -456,7 +485,7 @@
 
         function toggleEndrundeAdmin() { serverData.endrundeFreigeschaltet = !serverData.endrundeFreigeschaltet; updateUIPhases(); }
 
-        // SUPABASE POST/UPSERT FÜR ADMIN DATEN
+        // ADMIN UPDATE ANPASSUNG
         async function saveAdminResultsServer() {
             showLoading(true, "Speichere offizielle Ergebnisse...");
             let echte = {};
@@ -466,16 +495,17 @@
             });
 
             try {
-                await fetch(`${SUPABASE_URL}/rest/v1/admin_data`, {
-                    method: "POST",
+                await fetch(`${SUPABASE_URL}/rest/v1/admin_data?id=eq.1`, {
+                    method: "PATCH",
                     headers: { 
-                        "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`,
-                        "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates"
+                        "apikey": SUPABASE_KEY, 
+                        "Authorization": `Bearer ${SUPABASE_KEY}`,
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ id: 1, echte_ergebnisse: echte, endrunde_freigeschaltet: serverData.endrundeFreigeschaltet })
+                    body: JSON.stringify({ echte_ergebnisse: echte, endrunde_freigeschaltet: serverData.endrundeFreigeschaltet })
                 });
                 alert("Admin-Daten erfolgreich in Supabase gespeichert!");
-                loadDataFromServer();
+                await loadDataFromServer();
             } catch (e) {
                 console.error(e);
             }

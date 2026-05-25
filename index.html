@@ -206,6 +206,15 @@
             matches.push({ id: ko.id, type: 'ko', team1: '?', team2: '?', labelDe: ko.de, labelEn: ko.en, date: ko.date, time: ko.time });
         });
 
+        function switchLang(lang) {
+            currentLang = lang; localStorage.setItem('wc_lang', lang);
+            document.querySelectorAll('.data-lang').forEach(el => {
+                const translation = el.getAttribute(`data-${lang}`);
+                if (translation) el.innerText = translation;
+            });
+            renderMatches(); renderRanking();
+        }
+
         function checkAdminPermission() {
             const urlParams = new URLSearchParams(window.location.search);
             const navAdminBtn = document.getElementById('nav-admin');
@@ -217,6 +226,7 @@
             return false;
         }
 
+        // ABSOLUT STATISCHES INITIALISIEREN: Verhindert das Verschwinden der Spiele bei Cloud-Latenz
         window.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
                 document.getElementById('player-name-display').innerText = currentUser;
@@ -226,6 +236,12 @@
             }
             switchLang(localStorage.getItem('wc_lang') || 'de');
             checkAdminPermission(); 
+            
+            // Erst lokal rendern (Spiele stehen sofort)
+            renderMatches(); 
+            showTab('tab-matches'); 
+            
+            // Dann asynchron synchronisieren
             loadDataFromServer();
         });
 
@@ -236,11 +252,11 @@
             if (txtEl && text) txtEl.innerText = text;
         }
 
-        // Synchronisiert die Daten und stellt sicher, dass getippte Werte im Formular landen
         async function loadDataFromServer() {
             showLoading(true, "Synchronisiere Spieldaten...");
             try {
-                let res = await fetch(API_URL);
+                // Cache-Buster hinzugefügt, um Browser-Caching komplett zu verhindern
+                let res = await fetch(`${API_URL}?nocache=${new Date().getTime()}`);
                 if (res.ok) {
                     let data = await res.json();
                     if(data) {
@@ -248,14 +264,14 @@
                         if (!serverData.allPlayersData) serverData.allPlayersData = {};
                         if (!serverData.echteErgebnisse) serverData.echteErgebnisse = {};
                         
-                        // Wenn dieser User bereits Daten auf dem Server hat, sichern wir sie lokal ab
+                        // Wenn der Server bereits Daten hat, spiegeln wir sie in den LocalStorage
                         if (currentUser && serverData.allPlayersData[currentUser]) {
                             localStorage.setItem('wc_backup_tips_' + currentUser, JSON.stringify(serverData.allPlayersData[currentUser]));
                         }
                     }
                 }
             } catch (e) {
-                console.warn("Npoint-Abruf verzögert. Nutze lokalen Cache.", e);
+                console.warn("Netzwerkfehler abgefangen. Interface läuft stabil lokal weiter.", e);
             }
             
             updateUIPhases();
@@ -265,17 +281,17 @@
             showLoading(false);
         }
 
-        // Live-Merge: Lädt direkt vor dem Senden den neuesten Stand, um Überschreiben zu verhindern
+        // Sichert die Daten via Live-Merge ohne gegenseitiges Überschreiben
         async function saveUserTipsServer() {
             if(!currentUser) { alert("Bitte trag zuerst deinen Namen ein!"); return; }
-            showLoading(true, "Speichere Tipps in der Cloud...");
+            showLoading(true, "Übertrage Tipps in die Live-Datenbank...");
             
             let localKey = 'wc_backup_tips_' + currentUser;
             let currentBackup = JSON.parse(localStorage.getItem(localKey)) || {};
 
             try {
-                // Frisch herrunterladen, um parallel abgegebene Tipps anderer Familienmitglieder zu erhalten
-                let freshRes = await fetch(API_URL);
+                // 1. Erst den absolut neuesten Stand der npoint-Box holen
+                let freshRes = await fetch(`${API_URL}?nocache=${new Date().getTime()}`);
                 if (freshRes.ok) {
                     let freshData = await freshRes.json();
                     if (freshData) {
@@ -284,9 +300,10 @@
                     }
                 }
 
-                // Nur den eigenen Datenblock modifizieren
+                // 2. Nur den eigenen Namens-Block modifizieren (Andere User bleiben unberührt)
                 serverData.allPlayersData[currentUser] = currentBackup;
 
+                // 3. Gesamt-Paket per PUT hochladen
                 let response = await fetch(API_URL, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
@@ -294,22 +311,13 @@
                 });
                 
                 if (response.ok) {
-                    alert(currentLang === 'de' ? "🎉 Deine Tipps wurden live übertragen und gesichert!" : "🎉 Predictions saved!");
+                    alert(currentLang === 'de' ? "🎉 Deine Tipps wurden erfolgreich übertragen und gesichert!" : "🎉 Predictions saved!");
                     await loadDataFromServer();
                 } else { throw new Error(); }
             } catch (err) {
-                alert("Fehler beim Übertragen. Tipps sind lokal im Browser gesichert.");
+                alert("Übertragungsfehler. Daten sind lokal gesichert.");
             }
             showLoading(false);
-        }
-
-        function switchLang(lang) {
-            currentLang = lang; localStorage.setItem('wc_lang', lang);
-            document.querySelectorAll('.data-lang').forEach(el => {
-                const translation = el.getAttribute(`data-${lang}`);
-                if (translation) el.innerText = translation;
-            });
-            renderMatches(); renderRanking();
         }
 
         function saveUsername() {
@@ -371,8 +379,8 @@
             }
             
             matches.filter(m => m.type === currentFilterPhase).forEach(m => {
-                const userTip = userTips[m.id] || { home: '', away: '' }; 
-                const realResult = serverData.echteErgebnisse ? serverData.echteErgebnisse[m.id] : null; 
+                const userTip = userTip = userTips[m.id] || { home: '', away: '' }; 
+                const realResult = (serverData && serverData.echteErgebnisse) ? serverData.echteErgebnisse[m.id] : null; 
                 let badge = '';
                 
                 if (realResult) {

@@ -107,7 +107,6 @@
     </main>
 
     <script>
-        // Deine verifizierte npoint-Box aus dem hochgeladenen Screenshot!
         const BIN_ID = "c264cc1778e455880e62";
         const API_URL = `https://api.npoint.io/${BIN_ID}`;
 
@@ -150,7 +149,6 @@
             "?": { de: "Noch offen", en: "TBD" }
         };
 
-        // Fest verankerte, sichere Liste der ersten 32 Partien
         let matches = [
             { id: "match_1", type: "group", team1: "MEX", team2: "RSA", labelDe: "Gruppe A - Eröffnungsspiel", labelEn: "Group A - Opening Match", date: "11.06.2026", time: "21:00" },
             { id: "match_2", type: "group", team1: "KOR", team2: "CZE", labelDe: "Gruppe A", labelEn: "Group A", date: "12.06.2026", time: "04:00" },
@@ -186,7 +184,6 @@
             { id: "match_32", type: "group", team1: "URU", team2: "CPV", labelDe: "Gruppe H", labelEn: "Group H", date: "22.06.2026", time: "00:00" }
         ];
 
-        // Schleifen-Generierung mathematisch absolut ausfallsicher korrigiert
         const restTeams = ["FRA", "SEN", "IRQ", "NOR", "ARG", "ALG", "AUT", "JOR", "POR", "COD", "UZB", "COL", "ENG", "CRO", "GHA", "PAN"];
         for (let i = 33; i <= 72; i++) {
             let index1 = (i - 33) % restTeams.length;
@@ -209,10 +206,6 @@
             matches.push({ id: ko.id, type: 'ko', team1: '?', team2: '?', labelDe: ko.de, labelEn: ko.en, date: ko.date, time: ko.time });
         });
 
-        function getTeamName(code) {
-            return teamNames[code] ? (teamNames[code][currentLang] || teamNames[code]['de'] || code) : code;
-        }
-
         function checkAdminPermission() {
             const urlParams = new URLSearchParams(window.location.search);
             const navAdminBtn = document.getElementById('nav-admin');
@@ -224,7 +217,6 @@
             return false;
         }
 
-        // Lokales Vorab-Rendern, damit die Seite niemals einfriert
         window.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
                 document.getElementById('player-name-display').innerText = currentUser;
@@ -234,9 +226,7 @@
             }
             switchLang(localStorage.getItem('wc_lang') || 'de');
             checkAdminPermission(); 
-            renderMatches(); 
-            showTab('tab-matches'); 
-            loadDataFromServer(); 
+            loadDataFromServer();
         });
 
         function showLoading(show, text = "") {
@@ -246,6 +236,7 @@
             if (txtEl && text) txtEl.innerText = text;
         }
 
+        // Synchronisiert die Daten und stellt sicher, dass getippte Werte im Formular landen
         async function loadDataFromServer() {
             showLoading(true, "Synchronisiere Spieldaten...");
             try {
@@ -256,18 +247,25 @@
                         serverData = data;
                         if (!serverData.allPlayersData) serverData.allPlayersData = {};
                         if (!serverData.echteErgebnisse) serverData.echteErgebnisse = {};
+                        
+                        // Wenn dieser User bereits Daten auf dem Server hat, sichern wir sie lokal ab
+                        if (currentUser && serverData.allPlayersData[currentUser]) {
+                            localStorage.setItem('wc_backup_tips_' + currentUser, JSON.stringify(serverData.allPlayersData[currentUser]));
+                        }
                     }
-                    updateUIPhases();
-                    renderMatches(); 
-                    renderRanking();
-                    renderAdminMatches();
                 }
             } catch (e) {
-                console.warn("Lade lokale Offline-Struktur.", e);
+                console.warn("Npoint-Abruf verzögert. Nutze lokalen Cache.", e);
             }
+            
+            updateUIPhases();
+            renderMatches(); 
+            renderRanking();
+            renderAdminMatches();
             showLoading(false);
         }
 
+        // Live-Merge: Lädt direkt vor dem Senden den neuesten Stand, um Überschreiben zu verhindern
         async function saveUserTipsServer() {
             if(!currentUser) { alert("Bitte trag zuerst deinen Namen ein!"); return; }
             showLoading(true, "Speichere Tipps in der Cloud...");
@@ -275,21 +273,32 @@
             let localKey = 'wc_backup_tips_' + currentUser;
             let currentBackup = JSON.parse(localStorage.getItem(localKey)) || {};
 
-            serverData.allPlayersData[currentUser] = currentBackup;
-
             try {
+                // Frisch herrunterladen, um parallel abgegebene Tipps anderer Familienmitglieder zu erhalten
+                let freshRes = await fetch(API_URL);
+                if (freshRes.ok) {
+                    let freshData = await freshRes.json();
+                    if (freshData) {
+                        serverData = freshData;
+                        if (!serverData.allPlayersData) serverData.allPlayersData = {};
+                    }
+                }
+
+                // Nur den eigenen Datenblock modifizieren
+                serverData.allPlayersData[currentUser] = currentBackup;
+
                 let response = await fetch(API_URL, {
-                    method: "POST",
+                    method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(serverData)
                 });
                 
                 if (response.ok) {
-                    alert(currentLang === 'de' ? "🎉 Deine Tipps wurden live übertragen!" : "🎉 Predictions saved!");
+                    alert(currentLang === 'de' ? "🎉 Deine Tipps wurden live übertragen und gesichert!" : "🎉 Predictions saved!");
                     await loadDataFromServer();
                 } else { throw new Error(); }
             } catch (err) {
-                alert("Verbindungsfehler. Tipps sind lokal gesichert.");
+                alert("Fehler beim Übertragen. Tipps sind lokal im Browser gesichert.");
             }
             showLoading(false);
         }
@@ -389,7 +398,8 @@
 
         function trackLocalChange(matchId, side, value) {
             if(!currentUser) return;
-            let localKey = 'wc_backup_tips_' + currentUser; let currentBackup = JSON.parse(localStorage.getItem(localKey)) || {};
+            let localKey = 'wc_backup_tips_' + currentUser; 
+            let currentBackup = JSON.parse(localStorage.getItem(localKey)) || {};
             if (!currentBackup[matchId]) currentBackup[matchId] = { home: '', away: '' };
             currentBackup[matchId][side] = value !== '' ? parseInt(value) : '';
             localStorage.setItem(localKey, JSON.stringify(currentBackup));
@@ -457,7 +467,7 @@
 
             try {
                 await fetch(API_URL, {
-                    method: "POST",
+                    method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(serverData)
                 });

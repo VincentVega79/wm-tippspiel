@@ -107,7 +107,6 @@
     </main>
 
     <script>
-        // Deine ausgelesenen Projektdaten von Supabase
         const SUPABASE_URL = "https://ijvmbwubwshxmdmbyjwi.supabase.co";
         const SUPABASE_KEY = "sb_publishable_QzIiTXQP4J0WrrZGkXkVGw_QHpkpWnpxTk03S1pxTkdBME4wWGpCUU9RPT0=";
 
@@ -116,7 +115,6 @@
         let currentFilterPhase = 'group';
         let isAdminMode = false;
         
-        // Cache, um die IDs der Zeilen zu kennen (wichtig für fehlerfreie Updates)
         let playerRowIds = {}; 
 
         let serverData = {
@@ -256,26 +254,25 @@
             if (txtEl && text) txtEl.innerText = text;
         }
 
-        // KORRIGIERTE GET-ABFRAGE (Getrennte Aufrufe verhindern den 406-Fehler)
         async function loadDataFromServer() {
             showLoading(true, "Synchronisiere Live-Daten mit Supabase...");
             try {
-                // 1. Tipps laden
+                // 1. Tipps holen
                 let rTipps = await fetch(`${SUPABASE_URL}/rest/v1/tipps?select=id,player_name,predictions`, {
                     headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
                 });
                 let tippsRows = await rTipps.json();
                 serverData.allPlayersData = {};
-                playerRowIds = {}; // ID-Zuordnung leeren
+                playerRowIds = {}; 
 
                 if(Array.isArray(tippsRows)) {
                     tippsRows.forEach(row => {
                         serverData.allPlayersData[row.player_name] = row.predictions || {};
-                        playerRowIds[row.player_name] = row.id; // Interne Datenbank-ID merken
+                        playerRowIds[row.player_name] = row.id; 
                     });
                 }
 
-                // 2. Admin Status laden
+                // 2. Admin Daten holen
                 let rAdmin = await fetch(`${SUPABASE_URL}/rest/v1/admin_data?id=eq.1&select=echte_ergebnisse,endrunde_freigeschaltet`, {
                     headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
                 });
@@ -290,7 +287,7 @@
                 renderRanking();
                 renderAdminMatches();
             } catch (e) {
-                console.warn("Supabase-Abfrage fehlgeschlagen, arbeite lokal weiter.", e);
+                console.warn("Supabase-Abfrage verzögert.", e);
             }
             showLoading(false);
         }
@@ -391,7 +388,7 @@
             localStorage.setItem(localKey, JSON.stringify(currentBackup));
         }
 
-        // KORRIGIERTER POST/UPSERT SENDER (Verhindert den 400er ID-Fehler komplett)
+        // BOMBENFESTER SPEICHER-BEFEHL (Verhindert 400 ID-Fehler durch automatische ID-Injektion oder PATCH)
         async function saveUserTipsServer() {
             if(!currentUser) return;
             showLoading(true, "Speichere Tipps in Supabase Cloud...");
@@ -408,13 +405,13 @@
             
             let bodyData = { player_name: currentUser, predictions: predictions };
 
-            // Wenn der User schon existiert, machen wir ein gezieltes Update über seine ID, um Konflikte zu vermeiden
+            // WICHTIG: Wenn der User existiert, updaten wir gezielt über seine ID
             if (existingId) {
                 url += `?id=eq.${existingId}`;
                 method = "PATCH";
             } else {
-                // Bei einem neuen Eintrag lassen wir den Server die ID bestimmen (Resolution Merge)
-                headers["Prefer"] = "resolution=merge-duplicates";
+                // Wenn es ein neuer Spieler ist, generieren wir im Code eine Zufalls-ID für Supabase, falls Identity deaktiviert ist
+                bodyData.id = Math.floor(Math.random() * 9000000000) + 1000000000;
             }
 
             try {
@@ -424,19 +421,19 @@
                     body: JSON.stringify(bodyData)
                 });
                 
-                if (!response.ok) throw new Error("Server-Antwort fehlerhaft");
+                if (!response.ok) throw new Error("Fehler beim Cloud-Insert");
                 
-                alert(currentLang === 'de' ? "🎉 Tipps erfolgreich in Supabase gespeichert!" : "🎉 Predictions saved!");
+                alert(currentLang === 'de' ? "🎉 Tipps wurden erfolgreich übertragen und live in Supabase gesichert!" : "🎉 Predictions saved!");
                 await loadDataFromServer();
             } catch (err) {
                 console.error(err);
-                alert("Fehler bei der Übertragung zur Cloud-Datenbank.");
+                alert("Fehler bei der Live-Übertragung zur Cloud. Die Daten sind aber sicher auf dem Gerät hinterlegt.");
             }
             showLoading(false);
         }
 
         function calculatePoints(th, ta, rh, ra) {
-            if(th === '' || ta === '' || th === undefined || th === null || ta === undefined || ta === null) return 0; 
+            if(th === '' || ta === '' || th === undefined || th === null || ta === undefined || th === null) return 0; 
             if(rh === undefined || ra === undefined || rh === null || ra === null) return 0;
             const tipHome = parseInt(th); const tipAway = parseInt(ta); const realHome = parseInt(rh); const realAway = parseInt(ra);
             if (tipHome === realHome && tipAway === realAway) return 2; 
@@ -485,7 +482,6 @@
 
         function toggleEndrundeAdmin() { serverData.endrundeFreigeschaltet = !serverData.endrundeFreigeschaltet; updateUIPhases(); }
 
-        // ADMIN UPDATE ANPASSUNG
         async function saveAdminResultsServer() {
             showLoading(true, "Speichere offizielle Ergebnisse...");
             let echte = {};

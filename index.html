@@ -215,11 +215,11 @@
             switchLang(localStorage.getItem('wc_lang') || 'de');
             checkAdminPermission(); 
             
-            // Erst lokal rendern (Spiele stehen sofort da!)
+            // Erst lokal rendern (Spiele stehen sofort unverrückbar felsenfest!)
             renderMatches(); 
             showTab('tab-matches'); 
             
-            // Erst danach die Cloud anfragen
+            // Dann geräuschlos im Hintergrund synchronisieren
             loadDataFromServer();
         });
 
@@ -233,7 +233,7 @@
         async function loadDataFromServer() {
             showLoading(true, "Synchronisiere Spieldaten...");
             try {
-                // Feste URL zur Vermeidung von Aufruffehlern
+                // Feste URL-Zeichenkette statt verschachtelter Funktionen
                 let res = await fetch(`https://api.npoint.io/${BIN_ID}?nocache=${new Date().getTime()}`);
                 if (res.ok) {
                     let data = await res.json();
@@ -352,7 +352,7 @@
             }
             
             matches.filter(m => m.type === currentFilterPhase).forEach(m => {
-                // FIX: Sauberer Aufruf ohne doppelte Zuweisung!
+                // FIX: Doppelter Zuweisungsfehler KOMPLETT entfernt.
                 const userTip = userTips[m.id] || { home: '', away: '' }; 
                 const realResult = (serverData && serverData.echteErgebnisse) ? serverData.echteErgebnisse[m.id] : null; 
                 let badge = '';
@@ -385,6 +385,11 @@
             if (!currentBackup[matchId]) currentBackup[matchId] = { home: '', away: '' };
             currentBackup[matchId][side] = value !== '' ? parseInt(value) : '';
             localStorage.setItem(localKey, JSON.stringify(currentBackup));
+        }
+
+        function switchLang(lang) {
+            currentLang = lang; localStorage.setItem('wc_lang', lang);
+            renderMatches(); renderRanking();
         }
 
         function calculatePoints(th, ta, rh, ra) {

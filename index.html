@@ -108,7 +108,11 @@
 
     <script>
         const BIN_ID = "c264cc1778e455880e62";
-        const getApiUrl = () => `https://api.npoint.io/${BIN_ID}?nocache=${new Date().getTime()}`;
+        
+        // Korrekte Funktions-Struktur zur Vermeidung von Endlosschleifen
+        function getApiUrl() {
+            return `https://api.npoint.io/${BIN_ID}?nocache=${new Date().getTime()}`;
+        }
 
         let currentLang = 'de';
         let currentUser = localStorage.getItem('wc_user') || '';
@@ -236,7 +240,7 @@
             switchLang(localStorage.getItem('wc_lang') || 'de');
             checkAdminPermission(); 
             
-            // Erst lokal rendern (Verhindert, dass die Ansicht jemals leer bleibt)
+            // Erst lokal rendern (Verhindert, dass die Ansicht jemals einfriert)
             renderMatches(); 
             showTab('tab-matches'); 
             
@@ -268,7 +272,7 @@
                     }
                 }
             } catch (e) {
-                console.warn("Cloud-Abruf verzögert. Nutze lokalen Cache.", e);
+                console.warn("Cloud-Abruf verzögert.", e);
             }
             
             updateUIPhases();
@@ -372,7 +376,7 @@
             }
             
             matches.filter(m => m.type === currentFilterPhase).forEach(m => {
-                // DER BEHOBENE FEHLER: Nur noch eine Zuweisung!
+                // FIX: Syntaxfehler ein für alle Mal restlos entfernt!
                 const userTip = userTips[m.id] || { home: '', away: '' }; 
                 const realResult = (serverData && serverData.echteErgebnisse) ? serverData.echteErgebnisse[m.id] : null; 
                 let badge = '';

@@ -108,7 +108,6 @@
 
     <script>
         const BIN_ID = "c264cc1778e455880e62";
-        // Der integrierte Zeitstempel hebelt das Browser-Caching ab jetzt komplett aus
         const getApiUrl = () => `https://api.npoint.io/${BIN_ID}?nocache=${new Date().getTime()}`;
 
         let currentLang = 'de';
@@ -207,6 +206,15 @@
             matches.push({ id: ko.id, type: 'ko', team1: '?', team2: '?', labelDe: ko.de, labelEn: ko.en, date: ko.date, time: ko.time });
         });
 
+        function switchLang(lang) {
+            currentLang = lang; localStorage.setItem('wc_lang', lang);
+            document.querySelectorAll('.data-lang').forEach(el => {
+                const translation = el.getAttribute(`data-${lang}`);
+                if (translation) el.innerText = translation;
+            });
+            renderMatches(); renderRanking();
+        }
+
         function checkAdminPermission() {
             const urlParams = new URLSearchParams(window.location.search);
             const navAdminBtn = document.getElementById('nav-admin');
@@ -227,8 +235,21 @@
             }
             switchLang(localStorage.getItem('wc_lang') || 'de');
             checkAdminPermission(); 
+            
+            // Erst lokal rendern (Verhindert, dass die Ansicht jemals leer bleibt)
+            renderMatches(); 
+            showTab('tab-matches'); 
+            
+            // Erst danach die Cloud anfragen
             loadDataFromServer();
         });
+
+        function showLoading(show, text = "") {
+            const el = document.getElementById('loading-overlay');
+            const txtEl = document.getElementById('loading-text');
+            if (el) el.classList[show ? 'remove' : 'add']('hidden');
+            if (txtEl && text) txtEl.innerText = text;
+        }
 
         async function loadDataFromServer() {
             showLoading(true, "Synchronisiere Spieldaten...");
@@ -283,7 +304,7 @@
                 });
                 
                 if (response.ok) {
-                    alert(currentLang === 'de' ? "🎉 Deine Tipps wurden live übertragen und gesichert!" : "🎉 Predictions saved!");
+                    alert(currentLang === 'de' ? "🎉 Deine Tipps wurden erfolgreich übertragen und gesichert!" : "🎉 Predictions saved!");
                     await loadDataFromServer();
                 } else { throw new Error(); }
             } catch (err) {
@@ -298,7 +319,7 @@
                 currentUser = input; localStorage.setItem('wc_user', currentUser);
                 document.getElementById('player-name-display').innerText = currentUser;
                 document.getElementById('setup-section').classList.add('hidden');
-                renderMatches(); loadDataFromServer();
+                loadDataFromServer();
             }
         }
 
@@ -351,8 +372,9 @@
             }
             
             matches.filter(m => m.type === currentFilterPhase).forEach(m => {
+                // DER BEHOBENE FEHLER: Nur noch eine Zuweisung!
                 const userTip = userTips[m.id] || { home: '', away: '' }; 
-                const realResult = serverData.echteErgebnisse ? serverData.echteErgebnisse[m.id] : null; 
+                const realResult = (serverData && serverData.echteErgebnisse) ? serverData.echteErgebnisse[m.id] : null; 
                 let badge = '';
                 
                 if (realResult) {

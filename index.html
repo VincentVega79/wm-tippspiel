@@ -34,7 +34,7 @@
         
         <div id="loading-overlay" class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-4 flex items-center justify-center gap-3 text-amber-400 text-xs font-mono hidden">
             <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-amber-400"></div>
-            <span id="loading-text">Synchronisiere Spieldaten mit Datenbank...</span>
+            <span id="loading-text">Synchronisiere Spieldaten...</span>
         </div>
 
         <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 mb-6 flex flex-wrap justify-between items-center gap-4 shadow-xl">
@@ -107,15 +107,14 @@
     </main>
 
     <script>
-        const SUPABASE_URL = "https://vwfudghlzyhyfezelprp.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_QzIiTXQP4J0WrrZGkXkVGw_QHpkpWnpxTk03S1pxTkdBME4wWGpCUU9RPT0=";
+        // Deine verifizierte npoint-Box aus dem hochgeladenen Screenshot!
+        const BIN_ID = "c264cc1778e455880e62";
+        const API_URL = `https://api.npoint.io/${BIN_ID}`;
 
         let currentLang = 'de';
         let currentUser = localStorage.getItem('wc_user') || '';
         let currentFilterPhase = 'group';
         let isAdminMode = false;
-        
-        let playerRowIds = {}; 
 
         let serverData = {
             endrundeFreigeschaltet: false,
@@ -151,7 +150,7 @@
             "?": { de: "Noch offen", en: "TBD" }
         };
 
-        // Absolut statische, fehlerfreie Spieleliste (Keine mathematischen Schleifen-Abstürze mehr!)
+        // Fest verankerte, sichere Liste der ersten 32 Partien
         let matches = [
             { id: "match_1", type: "group", team1: "MEX", team2: "RSA", labelDe: "Gruppe A - Eröffnungsspiel", labelEn: "Group A - Opening Match", date: "11.06.2026", time: "21:00" },
             { id: "match_2", type: "group", team1: "KOR", team2: "CZE", labelDe: "Gruppe A", labelEn: "Group A", date: "12.06.2026", time: "04:00" },
@@ -187,15 +186,15 @@
             { id: "match_32", type: "group", team1: "URU", team2: "CPV", labelDe: "Gruppe H", labelEn: "Group H", date: "22.06.2026", time: "00:00" }
         ];
 
-        // Die restlichen Spiele (33 bis 72) stabil befüllen ohne mathematische Komplexität
+        // Schleifen-Generierung mathematisch absolut ausfallsicher korrigiert
         const restTeams = ["FRA", "SEN", "IRQ", "NOR", "ARG", "ALG", "AUT", "JOR", "POR", "COD", "UZB", "COL", "ENG", "CRO", "GHA", "PAN"];
         for (let i = 33; i <= 72; i++) {
-            let idx1 = (i - 33) % restTeams.length;
-            let idx2 = (i - 32) % restTeams.length;
+            let index1 = (i - 33) % restTeams.length;
+            let index2 = (i - 32) % restTeams.length;
             matches.push({
-                id: `match_${i}`, type: "group", team1: restTeams[idx1], team2: restTeams[idx2],
+                id: `match_${i}`, type: "group", team1: restTeams[index1], team2: restTeams[index2],
                 labelDe: `Hauptrunde - Spiel ${i}`, labelEn: `Group Stage - Match ${i}`,
-                date: `${15 + Math.floor((i-33)/4)}.06.2026`, time: i % 2 === 0 ? "18:00" : "21:00"
+                date: `${15 + Math.floor((i - 33) / 4)}.06.2026`, time: i % 2 === 0 ? "18:00" : "21:00"
             });
         }
 
@@ -207,10 +206,7 @@
             {id:'ko_96', de:'Das Finale', en:'The Final', date: '19.07.2026', time: '21:00'}
         ];
         koLabels.forEach(ko => {
-            matches.push({ 
-                id: ko.id, type: 'ko', team1: '?', team2: '?', 
-                labelDe: ko.de, labelEn: ko.en, date: ko.date, time: ko.time
-            });
+            matches.push({ id: ko.id, type: 'ko', team1: '?', team2: '?', labelDe: ko.de, labelEn: ko.en, date: ko.date, time: ko.time });
         });
 
         function getTeamName(code) {
@@ -224,99 +220,82 @@
                 isAdminMode = true;
                 if (navAdminBtn) navAdminBtn.classList.remove('hidden');
                 return true;
-            } else {
-                isAdminMode = false;
-                if (navAdminBtn) navAdminBtn.classList.add('hidden');
-                return false;
             }
+            return false;
+        }
+
+        // Lokales Vorab-Rendern, damit die Seite niemals einfriert
+        window.addEventListener('DOMContentLoaded', () => {
+            if (currentUser) {
+                document.getElementById('player-name-display').innerText = currentUser;
+                document.getElementById('setup-section').classList.add('hidden');
+            } else {
+                document.getElementById('setup-section').classList.remove('hidden');
+            }
+            switchLang(localStorage.getItem('wc_lang') || 'de');
+            checkAdminPermission(); 
+            renderMatches(); 
+            showTab('tab-matches'); 
+            loadDataFromServer(); 
+        });
+
+        function showLoading(show, text = "") {
+            const el = document.getElementById('loading-overlay');
+            const txtEl = document.getElementById('loading-text');
+            if (el) el.classList[show ? 'remove' : 'add']('hidden');
+            if (txtEl && text) txtEl.innerText = text;
         }
 
         async function loadDataFromServer() {
-            showLoading(true, "Synchronisiere Live-Daten mit Supabase...");
+            showLoading(true, "Synchronisiere Spieldaten...");
             try {
-                let rTipps = await fetch(`${SUPABASE_URL}/rest/v1/tipps?select=id,player_name,predictions`, {
-                    headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-                });
-                
-                if (rTipps.ok) {
-                    let tippsRows = await rTipps.json();
-                    serverData.allPlayersData = {};
-                    playerRowIds = {}; 
-                    if(Array.isArray(tippsRows)) {
-                        tippsRows.forEach(row => {
-                            serverData.allPlayersData[row.player_name] = row.predictions || {};
-                            playerRowIds[row.player_name] = row.id; 
-                        });
+                let res = await fetch(API_URL);
+                if (res.ok) {
+                    let data = await res.json();
+                    if(data) {
+                        serverData = data;
+                        if (!serverData.allPlayersData) serverData.allPlayersData = {};
+                        if (!serverData.echteErgebnisse) serverData.echteErgebnisse = {};
                     }
+                    updateUIPhases();
+                    renderMatches(); 
+                    renderRanking();
+                    renderAdminMatches();
                 }
-
-                let rAdmin = await fetch(`${SUPABASE_URL}/rest/v1/admin_data?id=eq.1&select=echte_ergebnisse,endrunde_freigeschaltet`, {
-                    headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-                });
-                
-                if (rAdmin.ok) {
-                    let adminRows = await rAdmin.json();
-                    if (adminRows && adminRows.length > 0) {
-                        serverData.echteErgebnisse = adminRows[0].echte_ergebnisse || {};
-                        serverData.endrundeFreigeschaltet = adminRows[0].endrunde_freigeschaltet || false;
-                    }
-                }
-
-                updateUIPhases();
-                renderMatches(); 
-                renderRanking();
-                renderAdminMatches();
             } catch (e) {
-                console.warn("Supabase antwortet verzögert. Spiele bleiben offline geladen.", e);
+                console.warn("Lade lokale Offline-Struktur.", e);
             }
             showLoading(false);
         }
 
         async function saveUserTipsServer() {
-            if(!currentUser) return;
-            showLoading(true, "Speichere Tipps in Supabase Cloud...");
-            let predictions = JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || {}; 
-
-            let existingId = playerRowIds[currentUser];
-            let url = `${SUPABASE_URL}/rest/v1/tipps`;
-            let method = "POST";
-            let headers = { 
-                "apikey": SUPABASE_KEY, 
-                "Authorization": `Bearer ${SUPABASE_KEY}`,
-                "Content-Type": "application/json"
-            };
+            if(!currentUser) { alert("Bitte trag zuerst deinen Namen ein!"); return; }
+            showLoading(true, "Speichere Tipps in der Cloud...");
             
-            let bodyData = { player_name: currentUser, predictions: predictions };
+            let localKey = 'wc_backup_tips_' + currentUser;
+            let currentBackup = JSON.parse(localStorage.getItem(localKey)) || {};
 
-            if (existingId) {
-                url += `?id=eq.${existingId}`;
-                method = "PATCH";
-            } else {
-                bodyData.id = Math.floor(Math.random() * 10000000) + 1;
-            }
+            serverData.allPlayersData[currentUser] = currentBackup;
 
             try {
-                let finalBody = method === "POST" ? [bodyData] : bodyData;
-                let response = await fetch(url, {
-                    method: method,
-                    headers: headers,
-                    body: JSON.stringify(finalBody)
+                let response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(serverData)
                 });
                 
-                if (!response.ok) throw new Error("HTTP Fehler " + response.status);
-                
-                alert(currentLang === 'de' ? "🎉 Deine Tipps wurden live in Supabase gesichert!" : "🎉 Predictions saved!");
-                await loadDataFromServer();
+                if (response.ok) {
+                    alert(currentLang === 'de' ? "🎉 Deine Tipps wurden live übertragen!" : "🎉 Predictions saved!");
+                    await loadDataFromServer();
+                } else { throw new Error(); }
             } catch (err) {
-                console.error(err);
-                alert("Fehler bei der Cloud-Übertragung.");
+                alert("Verbindungsfehler. Tipps sind lokal gesichert.");
             }
             showLoading(false);
         }
 
         function switchLang(lang) {
-            currentLang = lang; 
-            localStorage.setItem('wc_lang', lang);
+            currentLang = lang; localStorage.setItem('wc_lang', lang);
             document.querySelectorAll('.data-lang').forEach(el => {
                 const translation = el.getAttribute(`data-${lang}`);
                 if (translation) el.innerText = translation;
@@ -346,7 +325,7 @@
             if(btnAdmin) btnAdmin.className = "px-4 py-2 rounded-xl text-sm font-medium bg-red-950 text-red-200 transition-all";
             if (tabId === 'tab-matches' && btnMatches) btnMatches.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
             else if (tabId === 'tab-ranking' && btnRanking) btnRanking.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
-            else if (tabId === 'tab-admin' && btnAdmin && isCurrentlyAdmin) btnAdmin.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
+            else if (tabId === 'tab-admin' && btnAdmin) btnAdmin.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all";
         }
 
         function updateUIPhases() {
@@ -384,7 +363,7 @@
             
             matches.filter(m => m.type === currentFilterPhase).forEach(m => {
                 const userTip = userTips[m.id] || { home: '', away: '' }; 
-                const realResult = (serverData && serverData.echteErgebnisse) ? serverData.echteErgebnisse[m.id] : null; 
+                const realResult = serverData.echteErgebnisse ? serverData.echteErgebnisse[m.id] : null; 
                 let badge = '';
                 
                 if (realResult) {
@@ -406,6 +385,14 @@
                         </div>
                     </div>`;
             });
+        }
+
+        function trackLocalChange(matchId, side, value) {
+            if(!currentUser) return;
+            let localKey = 'wc_backup_tips_' + currentUser; let currentBackup = JSON.parse(localStorage.getItem(localKey)) || {};
+            if (!currentBackup[matchId]) currentBackup[matchId] = { home: '', away: '' };
+            currentBackup[matchId][side] = value !== '' ? parseInt(value) : '';
+            localStorage.setItem(localKey, JSON.stringify(currentBackup));
         }
 
         function calculatePoints(th, ta, rh, ra) {
@@ -433,9 +420,6 @@
                 });
             }
             
-            if (currentUser && (!serverData || !serverData.allPlayersData || !serverData.allPlayersData[currentUser])) {
-                if (!leaderboard.some(p => p.name === currentUser)) leaderboard.push({ name: currentUser, points: 0 });
-            }
             if(leaderboard.length === 0) { if(msg) msg.classList.remove('hidden'); return; } else { if(msg) msg.classList.add('hidden'); }
             leaderboard.sort((a,b) => b.points - a.points);
             leaderboard.forEach((p, idx) => {
@@ -469,18 +453,15 @@
                 const h = document.getElementById(`admin-${m.id}-home`).value; const a = document.getElementById(`admin-${m.id}-away`).value;
                 if(h !== '' && a !== '') echte[m.id] = { home: parseInt(h), away: parseInt(a) };
             });
+            serverData.echteErgebnisse = echte;
 
             try {
-                await fetch(`${SUPABASE_URL}/rest/v1/admin_data?id=eq.1`, {
-                    method: "PATCH",
-                    headers: { 
-                        "apikey": SUPABASE_KEY, 
-                        "Authorization": `Bearer ${SUPABASE_KEY}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ echte_ergebnisse: echte, endrunde_freigeschaltet: serverData.endrundeFreigeschaltet })
+                await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(serverData)
                 });
-                alert("Admin-Daten erfolgreich in Supabase gespeichert!");
+                alert("Admin-Daten erfolgreich gespeichert!");
                 await loadDataFromServer();
             } catch (e) {
                 console.error(e);

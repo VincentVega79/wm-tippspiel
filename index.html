@@ -107,6 +107,7 @@
     </main>
 
     <script>
+        // Deine ausgelesenen Projektdaten von Supabase
         const SUPABASE_URL = "https://vwfudghlzyhyfezelprp.supabase.co";
         const SUPABASE_KEY = "sb_publishable_QzIiTXQP4J0WrrZGkXkVGw_QHpkpWnpxTk03S1pxTkdBME4wWGpCUU9RPT0=";
 
@@ -129,7 +130,7 @@
             "CAN": { de: "Kanada", en: "Canada" }, "BIH": { de: "Bosnien", en: "Bosnia" },
             "QAT": { de: "Katar", en: "Qatar" }, "SUI": { de: "Schweiz", en: "Switzerland" },
             "BRA": { de: "Brasilien", en: "Brazil" }, "MAR": { de: "Marokko", en: "Morocco" },
-            "HAI": { de: "Haiti", do: "Haiti" }, "SCO": { de: "Schottland", en: "Scotland" },
+            "HAI": { de: "Haiti", en: "Haiti" }, "SCO": { de: "Schottland", en: "Scotland" },
             "USA": { de: "USA", en: "USA" }, "PAR": { de: "Paraguay", en: "Paraguay" },
             "AUS": { de: "Australien", en: "Australia" }, "TUR": { de: "Türkei", en: "Turkey" },
             "GER": { de: "Deutschland", en: "Germany" }, "CUW": { de: "Curaçao", en: "Curaçao" },
@@ -212,7 +213,53 @@
             });
         });
 
-        // ABSOLUT SEITEN-SICHER: Die Spiele werden sofort geladen, bevor überhaupt ein Server-Request startet!
+        function getTeamName(code) {
+            return teamNames[code] ? (teamNames[code][currentLang] || teamNames[code]['de'] || code) : code;
+        }
+
+        function checkAdminPermission() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const navAdminBtn = document.getElementById('nav-admin');
+            
+            if (urlParams.get('mode') === 'admin') {
+                isAdminMode = true;
+                if (navAdminBtn) navAdminBtn.classList.remove('hidden');
+                return true;
+            } else {
+                isAdminMode = false;
+                if (navAdminBtn) navAdminBtn.classList.add('hidden');
+                return false;
+            }
+        }
+
+        // VOLLSTÄNDIG REPARIERTER SEITENSTART
+        window.addEventListener('DOMContentLoaded', () => {
+            if (currentUser) {
+                document.getElementById('player-name-display').innerText = currentUser;
+                document.getElementById('setup-section').classList.add('hidden');
+            } else {
+                document.getElementById('setup-section').classList.remove('hidden');
+            }
+            
+            switchLang(localStorage.getItem('wc_lang') || 'de');
+            checkAdminPermission(); 
+            
+            // Radikaler Fix: Rendere die Spiele SOFORT lokal, damit die Ansicht niemals leer bleibt!
+            renderMatches(); 
+            showTab('tab-matches'); 
+            
+            // Jetzt erst Daten synchronisieren
+            loadDataFromServer(); 
+        });
+
+        function showLoading(show, text = "") {
+            const el = document.getElementById('loading-overlay');
+            const txtEl = document.getElementById('loading-text');
+            if (el) el.classList[show ? 'remove' : 'add']('hidden');
+            if (txtEl && text) txtEl.innerText = text;
+        }
+
+        // GETRENNTE, FEHLERFREIE SERVER-ABFRAGEN
         async function loadDataFromServer() {
             showLoading(true, "Synchronisiere Live-Daten mit Supabase...");
             try {
@@ -246,58 +293,7 @@
                 renderRanking();
                 renderAdminMatches();
             } catch (e) {
-                console.warn("Supabase-Abfrage fehlgeschlagen, nutze Offline-Cache.", e);
-            }
-            showLoading(false);
-        }
-
-        // DER WATERPROOF-UPSERT-SENDER (PostgREST-Array-Format erzwingen)
-        async function saveUserTipsServer() {
-            if(!currentUser) {
-                alert("Bitte trage zuerst deinen Namen ein!");
-                return;
-            }
-            showLoading(true, "Speichere Tipps in Supabase Cloud...");
-            let predictions = JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || serverData.allPlayersData[currentUser] || {}; 
-
-            let existingId = playerRowIds[currentUser];
-            let url = `${SUPABASE_URL}/rest/v1/tipps`;
-            let method = "POST";
-            let headers = { 
-                "apikey": SUPABASE_KEY, 
-                "Authorization": `Bearer ${SUPABASE_KEY}`,
-                "Content-Type": "application/json"
-            };
-            
-            let bodyData = { player_name: currentUser, predictions: predictions };
-
-            if (existingId) {
-                url += `?id=eq.${existingId}`;
-                method = "PATCH"; // Gefundenen Datensatz perID ueberschreiben
-            } else {
-                // Bei einem neuen Spieler erzeugen wir eine valide ID im zulässigen int8-Bereich
-                bodyData.id = Math.floor(Math.random() * 10000000) + 1;
-            }
-
-            try {
-                // Supabase benötigt bei POST zwingend ein Array in eckigen Klammern [ ... ]
-                let finalBody = method === "POST" ? [bodyData] : bodyData;
-
-                let response = await fetch(url, {
-                    method: method,
-                    headers: headers,
-                    body: JSON.stringify(finalBody)
-                });
-                
-                if (!response.ok) {
-                    throw new Error("HTTP-Schnittstellen-Fehler: " + response.status);
-                }
-                
-                alert(currentLang === 'de' ? "🎉 Deine Tipps wurden erfolgreich übertragen und live gesichert!" : "🎉 Predictions saved!");
-                await loadDataFromServer();
-            } catch (err) {
-                console.error(err);
-                alert("Übertragungsfehler. Bitte stelle im Supabase-Dashboard sicher, dass RLS für die Tabelle 'tipps' auf 'disabled' steht.");
+                console.warn("Supabase antwortet verzögert. Spiele bleiben offline geladen.", e);
             }
             showLoading(false);
         }
@@ -396,6 +392,51 @@
             if (!currentBackup[matchId]) currentBackup[matchId] = { home: '', away: '' };
             currentBackup[matchId][side] = value !== '' ? parseInt(value) : '';
             localStorage.setItem(localKey, JSON.stringify(currentBackup));
+        }
+
+        // DER KORREKTE REST-KONFORME SPEICHERBEFEHL (POST als Array)
+        async function saveUserTipsServer() {
+            if(!currentUser) return;
+            showLoading(true, "Speichere Tipps in Supabase Cloud...");
+            let predictions = JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || serverData.allPlayersData[currentUser] || {}; 
+
+            let existingId = playerRowIds[currentUser];
+            let url = `${SUPABASE_URL}/rest/v1/tipps`;
+            let method = "POST";
+            let headers = { 
+                "apikey": SUPABASE_KEY, 
+                "Authorization": `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json"
+            };
+            
+            let bodyData = { player_name: currentUser, predictions: predictions };
+
+            if (existingId) {
+                url += `?id=eq.${existingId}`;
+                method = "PATCH";
+            } else {
+                bodyData.id = Math.floor(Math.random() * 10000000) + 1;
+            }
+
+            try {
+                // PostgREST verlangt bei POST zwingend ein Array in eckigen Klammern [ ... ]
+                let finalBody = method === "POST" ? [bodyData] : bodyData;
+
+                let response = await fetch(url, {
+                    method: method,
+                    headers: headers,
+                    body: JSON.stringify(finalBody)
+                });
+                
+                if (!response.ok) throw new Error("HTTP Fehler " + response.status);
+                
+                alert(currentLang === 'de' ? "🎉 Deine Tipps wurden live in Supabase gesichert!" : "🎉 Predictions saved!");
+                await loadDataFromServer();
+            } catch (err) {
+                console.error(err);
+                alert("Fehler bei der Cloud-Übertragung.");
+            }
+            showLoading(false);
         }
 
         function calculatePoints(th, ta, rh, ra) {

@@ -108,11 +108,6 @@
 
     <script>
         const BIN_ID = "c264cc1778e455880e62";
-        
-        // Korrekte Funktions-Struktur zur Vermeidung von Endlosschleifen
-        function getApiUrl() {
-            return `https://api.npoint.io/${BIN_ID}?nocache=${new Date().getTime()}`;
-        }
 
         let currentLang = 'de';
         let currentUser = localStorage.getItem('wc_user') || '';
@@ -210,26 +205,6 @@
             matches.push({ id: ko.id, type: 'ko', team1: '?', team2: '?', labelDe: ko.de, labelEn: ko.en, date: ko.date, time: ko.time });
         });
 
-        function switchLang(lang) {
-            currentLang = lang; localStorage.setItem('wc_lang', lang);
-            document.querySelectorAll('.data-lang').forEach(el => {
-                const translation = el.getAttribute(`data-${lang}`);
-                if (translation) el.innerText = translation;
-            });
-            renderMatches(); renderRanking();
-        }
-
-        function checkAdminPermission() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const navAdminBtn = document.getElementById('nav-admin');
-            if (urlParams.get('mode') === 'admin') {
-                isAdminMode = true;
-                if (navAdminBtn) navAdminBtn.classList.remove('hidden');
-                return true;
-            }
-            return false;
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
                 document.getElementById('player-name-display').innerText = currentUser;
@@ -240,11 +215,11 @@
             switchLang(localStorage.getItem('wc_lang') || 'de');
             checkAdminPermission(); 
             
-            // Erst lokal rendern (Verhindert, dass die Ansicht jemals einfriert)
+            // Erst lokal rendern (Spiele stehen sofort)
             renderMatches(); 
             showTab('tab-matches'); 
             
-            // Erst danach die Cloud anfragen
+            // Dann asynchron synchronisieren
             loadDataFromServer();
         });
 
@@ -258,7 +233,8 @@
         async function loadDataFromServer() {
             showLoading(true, "Synchronisiere Spieldaten...");
             try {
-                let res = await fetch(getApiUrl());
+                // Lineare URL statt verschachtelter Funktion, um Abstürze zu verhindern
+                let res = await fetch(`https://api.npoint.io/${BIN_ID}?nocache=${new Date().getTime()}`);
                 if (res.ok) {
                     let data = await res.json();
                     if(data) {
@@ -290,7 +266,7 @@
             let currentBackup = JSON.parse(localStorage.getItem(localKey)) || {};
 
             try {
-                let freshRes = await fetch(getApiUrl());
+                let freshRes = await fetch(`https://api.npoint.io/${BIN_ID}?nocache=${new Date().getTime()}`);
                 if (freshRes.ok) {
                     let freshData = await freshRes.json();
                     if (freshData) {
@@ -301,7 +277,7 @@
 
                 serverData.allPlayersData[currentUser] = currentBackup;
 
-                let response = await fetch(getApiUrl(), {
+                let response = await fetch(`https://api.npoint.io/${BIN_ID}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(serverData)
@@ -376,7 +352,6 @@
             }
             
             matches.filter(m => m.type === currentFilterPhase).forEach(m => {
-                // FIX: Syntaxfehler ein für alle Mal restlos entfernt!
                 const userTip = userTips[m.id] || { home: '', away: '' }; 
                 const realResult = (serverData && serverData.echteErgebnisse) ? serverData.echteErgebnisse[m.id] : null; 
                 let badge = '';
@@ -472,7 +447,7 @@
             serverData.echteErgebnisse = echte;
 
             try {
-                await fetch(getApiUrl(), {
+                await fetch(`https://api.npoint.io/${BIN_ID}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(serverData)

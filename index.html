@@ -25,21 +25,16 @@
     <header class="bg-[#0a192f] border-b border-[#d4af37]/30 p-4 sticky top-0 z-50 shadow-lg">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <h1 class="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-200 tracking-wider uppercase">
-                &#127942; World Cup 2026
+                🏆 World Cup 2026
             </h1>
             <div class="flex items-center gap-3">
-                <button onclick="switchLang('de')" id="btn-de" class="px-2 py-1 rounded text-xs font-bold bg-amber-500 text-black">DE</button>
-                <button onclick="switchLang('en')" id="btn-en" class="px-2 py-1 rounded text-xs font-bold bg-slate-700 text-white">EN</button>
+                <button onclick="switchLang('de')" id="btn-de" class="px-2 py-1 rounded text-xs font-bold transition-all bg-amber-500 text-black">DE</button>
+                <button onclick="switchLang('en')" id="btn-en" class="px-2 py-1 rounded text-xs font-bold transition-all bg-slate-700 text-white">EN</button>
             </div>
         </div>
     </header>
 
     <main class="max-w-4xl w-full mx-auto p-4 flex-grow">
-
-        <div id="loading-overlay" class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-4 flex items-center justify-center gap-3 text-amber-400 text-xs font-mono hidden">
-            <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-amber-400"></div>
-            <span id="loading-text">Synchronisiere Spieldaten...</span>
-        </div>
 
         <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 mb-6 flex flex-wrap justify-between items-center gap-4 shadow-xl">
             <div>
@@ -47,142 +42,69 @@
                 <span id="player-name-display" class="text-xl font-bold text-white">Gast / Guest</span>
             </div>
             <div class="flex gap-2">
-                <button onclick="showTab('tab-matches')" id="nav-matches" class="px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all">&#9917; Tipps</button>
-                <button onclick="showTab('tab-ranking')" id="nav-ranking" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-gray-300 transition-all">&#128202; Ranking</button>
-                <button onclick="showTab('tab-admin')" id="nav-admin" class="px-4 py-2 rounded-xl text-sm font-medium bg-red-950 text-red-200 hidden">&#9881;&#65039; Admin</button>
+                <button onclick="showTab('tab-matches')" id="nav-matches" class="px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-slate-950 transition-all">⚽ Tipps</button>
             </div>
         </div>
 
-        <!-- Setup / Name-Eingabe -->
         <section id="setup-section" class="bg-[#111827] border border-slate-800 rounded-2xl p-6 mb-6 shadow-xl hidden">
             <h2 class="text-2xl font-semibold mb-2 text-amber-400" id="setup-title">Willkommen zum Familien-Tippspiel!</h2>
-            <p class="text-sm text-gray-400 mb-4" id="setup-desc">Bitte gib deinen Namen ein. Deine Tipps werden zentral gespeichert.</p>
+            <p class="text-sm text-gray-400 mb-4" id="setup-desc">Bitte gib deinen Namen ein. Deine Tipps werden lokal auf deinem Gerät gesichert.</p>
             <div class="flex gap-2">
                 <input type="text" id="username-input" class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white w-full focus:outline-none focus:border-amber-400" placeholder="z.B. Opa Heinz">
                 <button onclick="saveUsername()" id="setup-btn" class="bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-bold px-6 py-3 rounded-xl transition-all whitespace-nowrap">Starten</button>
             </div>
         </section>
 
-        <!-- Tab: Tipps -->
         <div id="tab-matches" class="tab-content space-y-6">
-            <div class="flex gap-2 overflow-x-auto pb-2 border-b border-slate-800">
-                <button onclick="filterPhase('group')" id="phase-group" class="border border-amber-500/50 bg-amber-500/10 text-amber-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0">Hauptrunde (72 Spiele)</button>
-                <button onclick="filterPhase('ko')" id="phase-ko" class="opacity-50 pointer-events-none border border-slate-700 text-gray-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0">&#128274; Endrunde</button>
-            </div>
             <div id="matches-container" class="space-y-3"></div>
-            <div class="text-center pt-4">
-                <button onclick="saveUserTipsServer()" id="submit-btn" class="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg transition-all w-full md:w-auto">&#128190; Tipps abschicken</button>
-            </div>
-        </div>
-
-        <!-- Tab: Ranking -->
-        <div id="tab-ranking" class="tab-content hidden p-1">
-            <div class="bg-[#111827] border border-slate-800 rounded-2xl p-6 shadow-xl">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold text-amber-400" id="ranking-title">&#127942; Live-Rangliste</h3>
-                    <button onclick="loadDataFromServer()" class="text-xs bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded-lg transition-all" id="refresh-btn">&#128260; Aktualisieren</button>
+            
+            <div class="bg-[#111827] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <h3 class="text-lg font-bold text-amber-400">Tipps versenden</h3>
+                <p class="text-xs text-gray-400">Wähle aus, wie du deine Tipps an die Turnierleitung übermitteln möchtest:</p>
+                
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="exportAsMessenger()" class="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                        💬 Für Messenger kopieren (WhatsApp...)
+                    </button>
+                    <button onclick="exportAsCSV()" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                        📧 Als E-Mail / CSV-Datei senden
+                    </button>
                 </div>
-                <div class="overflow-x-auto">
-                    <div class="w-full text-center py-4 text-gray-500 text-sm hidden" id="no-players-msg">Noch keine Tipps eingetragen. / No tips submitted yet.</div>
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-slate-800 text-gray-400 text-sm">
-                                <th class="py-3 px-4 w-16 text-center">#</th>
-                                <th class="py-3 px-4 text-left" id="th-name">Name</th>
-                                <th class="py-3 px-4 text-center" id="th-points">Punkte</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ranking-table-body"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tab: Admin -->
-        <div id="tab-admin" class="tab-content hidden space-y-4">
-            <div class="bg-red-950/20 border border-red-900/50 rounded-2xl p-6 shadow-xl">
-                <h3 class="text-xl font-bold mb-4 text-red-400">&#9881;&#65039; Admin-Zentrale</h3>
-                <div class="mb-4 flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-800">
-                    <span class="text-sm text-gray-300">Status Endrunde:</span>
-                    <button onclick="toggleEndrundeAdmin()" id="admin-ko-status-btn" class="bg-red-700 text-white text-xs px-3 py-2 rounded-lg font-bold">Gesperrt</button>
-                </div>
-                <div id="admin-matches-container" class="space-y-2 max-h-[32rem] overflow-y-auto pr-2"></div>
-                <button onclick="saveAdminResultsServer()" class="mt-4 bg-gradient-to-r from-red-700 to-red-600 text-white font-bold px-4 py-3 rounded-xl w-full shadow-lg">Echte Ergebnisse speichern</button>
             </div>
         </div>
 
     </main>
 
     <script>
-    // \u2500\u2500\u2500 KONFIGURATION \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    // GitHub Gist als Storage - zuverlaessig, kein CORS-Problem
-    const GIST_ID   = "fd2475d84d7cce5885d386ae3bab217f";
-    const GH_TOKEN  = "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";
-    const GIST_FILE = "tipps.json";
-    const GIST_API  = "https://api.github.com/gists/fd2475d84d7cce5885d386ae3bab217f";
-
     let currentLang = localStorage.getItem('wc_lang') || 'de';
     let currentUser = localStorage.getItem('wc_user') || '';
     let currentFilterPhase = 'group';
-    let isAdminMode = false;
 
-    let serverData = {
-        endrundeFreigeschaltet: false,
-        echteErgebnisse: {},
-        allPlayersData: {}
-    };
-
-    // \u2500\u2500\u2500 TEAM-NAMEN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const teamNames = {
-        "MEX": { de: "Mexiko",          en: "Mexico" },
-        "RSA": { de: "S\u00FCdafrika",       en: "South Africa" },
-        "KOR": { de: "S\u00FCdkorea",        en: "South Korea" },
-        "CZE": { de: "Tschechien",      en: "Czechia" },
-        "CAN": { de: "Kanada",          en: "Canada" },
-        "BIH": { de: "Bosnien",         en: "Bosnia" },
-        "QAT": { de: "Katar",           en: "Qatar" },
-        "SUI": { de: "Schweiz",         en: "Switzerland" },
-        "BRA": { de: "Brasilien",       en: "Brazil" },
-        "MAR": { de: "Marokko",         en: "Morocco" },
-        "HAI": { de: "Haiti",           en: "Haiti" },
-        "SCO": { de: "Schottland",      en: "Scotland" },
-        "USA": { de: "USA",             en: "USA" },
-        "PAR": { de: "Paraguay",        en: "Paraguay" },
-        "AUS": { de: "Australien",      en: "Australia" },
-        "TUR": { de: "T\u00FCrkei",          en: "Turkey" },
-        "GER": { de: "Deutschland",     en: "Germany" },
-        "CUW": { de: "Cura\u00E7ao",         en: "Cura\u00E7ao" },
-        "CIV": { de: "Elfenbeink\u00FCste",  en: "Ivory Coast" },
-        "ECU": { de: "Ecuador",         en: "Ecuador" },
-        "NED": { de: "Niederlande",     en: "Netherlands" },
-        "JPN": { de: "Japan",           en: "Japan" },
-        "SWE": { de: "Schweden",        en: "Sweden" },
-        "TUN": { de: "Tunesien",        en: "Tunisia" },
-        "BEL": { de: "Belgien",         en: "Belgium" },
-        "EGY": { de: "\u00C4gypten",         en: "Egypt" },
-        "IRN": { de: "Iran",            en: "Iran" },
-        "NZL": { de: "Neuseeland",      en: "New Zealand" },
-        "ESP": { de: "Spanien",         en: "Spain" },
-        "CPV": { de: "Kap Verde",       en: "Cape Verde" },
-        "KSA": { de: "Saudi-Arabien",   en: "Saudi Arabia" },
-        "URU": { de: "Uruguay",         en: "Uruguay" },
-        "FRA": { de: "Frankreich",      en: "France" },
-        "SEN": { de: "Senegal",         en: "Senegal" },
-        "IRQ": { de: "Irak",            en: "Iraq" },
-        "NOR": { de: "Norwegen",        en: "Norway" },
-        "ARG": { de: "Argentinien",     en: "Argentina" },
-        "ALG": { de: "Algerien",        en: "Algeria" },
-        "AUT": { de: "\u00D6sterreich",      en: "Austria" },
-        "JOR": { de: "Jordanien",       en: "Jordan" },
-        "POR": { de: "Portugal",        en: "Portugal" },
-        "COD": { de: "DR Kongo",        en: "DR Congo" },
-        "UZB": { de: "Usbekistan",      en: "Uzbekistan" },
-        "COL": { de: "Kolumbien",       en: "Colombia" },
-        "ENG": { de: "England",         en: "England" },
-        "CRO": { de: "Kroatien",        en: "Croatia" },
-        "GHA": { de: "Ghana",           en: "Ghana" },
-        "PAN": { de: "Panama",          en: "Panama" },
-        "?":   { de: "Noch offen",      en: "TBD" }
+        "MEX": { de: "Mexiko", en: "Mexico" }, "RSA": { de: "Südafrika", en: "South Africa" },
+        "KOR": { de: "Südkorea", en: "South Korea" }, "CZE": { de: "Tschechien", en: "Czechia" },
+        "CAN": { de: "Kanada", en: "Canada" }, "BIH": { de: "Bosnien", en: "Bosnia" },
+        "QAT": { de: "Katar", en: "Qatar" }, "SUI": { de: "Schweiz", en: "Switzerland" },
+        "BRA": { de: "Brasilien", en: "Brazil" }, "MAR": { de: "Marokko", en: "Morocco" },
+        "HAI": { de: "Haiti", en: "Haiti" }, "SCO": { de: "Schottland", en: "Scotland" },
+        "USA": { de: "USA", en: "USA" }, "PAR": { de: "Paraguay", en: "Paraguay" },
+        "AUS": { de: "Australien", en: "Australia" }, "TUR": { de: "Türkei", en: "Turkey" },
+        "GER": { de: "Deutschland", en: "Germany" }, "CUW": { de: "Curaçao", en: "Curaçao" },
+        "CIV": { de: "Elfenbeinküste", en: "Ivory Coast" }, "ECU": { de: "Ecuador", en: "Ecuador" },
+        "NED": { de: "Niederlande", en: "Netherlands" }, "JPN": { de: "Japan", en: "Japan" },
+        "SWE": { de: "Schweden", en: "Sweden" }, "TUN": { de: "Tunesien", en: "Tunisia" },
+        "BEL": { de: "Belgien", en: "Belgium" }, "EGY": { de: "Ägypten", en: "Egypt" },
+        "IRN": { de: "Iran", en: "Iran" }, "NZL": { de: "Neuseeland", en: "New Zealand" },
+        "ESP": { de: "Spanien",  en: "Spain" }, "CPV": { de: "Kap Verde", en: "Cape Verde" },
+        "KSA": { de: "Saudi-Arabien", en: "Saudi Arabia" }, "URU": { de: "Uruguay", en: "Uruguay" },
+        "FRA": { de: "Frankreich", en: "France" }, "SEN": { de: "Senegal", en: "Senegal" },
+        "IRQ": { de: "Irak", en: "Iraq" }, "NOR": { de: "Norwegen", en: "Norway" },
+        "ARG": { de: "Argentinien", en: "Argentina" }, "ALG": { de: "Algerien", en: "Algeria" },
+        "AUT": { de: "Österreich", en: "Austria" }, "JOR": { de: "Jordanien", en: "Jordan" },
+        "POR": { de: "Portugal", en: "Portugal" }, "COD": { de: "DR Kongo", en: "DR Congo" },
+        "UZB": { de: "Usbekistan", en: "Uzbekistan" }, "COL": { de: "Kolumbien", en: "Colombia" },
+        "ENG": { de: "England", en: "England" }, "CRO": { de: "Kroatien", en: "Croatia" },
+        "GHA": { de: "Ghana", en: "Ghana" }, "PAN": { de: "Panama", en: "Panama" }
     };
 
     function getTeamName(code) {
@@ -190,278 +112,97 @@
         return teamNames[code][currentLang] || teamNames[code]['de'] || code;
     }
 
-    // \u2500\u2500\u2500 SPIELDATEN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    // Gruppenphase: Spiele 1-32 (echte Ansetzungen)
     let matches = [
-        // Gruppe A
-        { id:"match_1",  type:"group", team1:"MEX", team2:"RSA", labelDe:"Gruppe A - Er\u00F6ffnungsspiel", labelEn:"Group A - Opening Match", date:"11.06.2026", time:"21:00" },
+        { id:"match_1",  type:"group", team1:"MEX", team2:"RSA", labelDe:"Gruppe A", labelEn:"Group A", date:"11.06.2026", time:"21:00" },
         { id:"match_2",  type:"group", team1:"KOR", team2:"CZE", labelDe:"Gruppe A", labelEn:"Group A", date:"12.06.2026", time:"04:00" },
         { id:"match_3",  type:"group", team1:"MEX", team2:"KOR", labelDe:"Gruppe A", labelEn:"Group A", date:"19.06.2026", time:"03:00" },
         { id:"match_4",  type:"group", team1:"CZE", team2:"RSA", labelDe:"Gruppe A", labelEn:"Group A", date:"18.06.2026", time:"18:00" },
-        // Gruppe B
         { id:"match_5",  type:"group", team1:"CAN", team2:"BIH", labelDe:"Gruppe B", labelEn:"Group B", date:"12.06.2026", time:"21:00" },
         { id:"match_6",  type:"group", team1:"QAT", team2:"SUI", labelDe:"Gruppe B", labelEn:"Group B", date:"13.06.2026", time:"21:00" },
         { id:"match_7",  type:"group", team1:"SUI", team2:"BIH", labelDe:"Gruppe B", labelEn:"Group B", date:"18.06.2026", time:"21:00" },
         { id:"match_8",  type:"group", team1:"CAN", team2:"QAT", labelDe:"Gruppe B", labelEn:"Group B", date:"19.06.2026", time:"00:00" },
-        // Gruppe C
         { id:"match_9",  type:"group", team1:"BRA", team2:"MAR", labelDe:"Gruppe C", labelEn:"Group C", date:"14.06.2026", time:"00:00" },
         { id:"match_10", type:"group", team1:"HAI", team2:"SCO", labelDe:"Gruppe C", labelEn:"Group C", date:"14.06.2026", time:"03:00" },
         { id:"match_11", type:"group", team1:"SCO", team2:"MAR", labelDe:"Gruppe C", labelEn:"Group C", date:"20.06.2026", time:"00:00" },
         { id:"match_12", type:"group", team1:"BRA", team2:"HAI", labelDe:"Gruppe C", labelEn:"Group C", date:"20.06.2026", time:"02:30" },
-        // Gruppe D
         { id:"match_13", type:"group", team1:"USA", team2:"PAR", labelDe:"Gruppe D", labelEn:"Group D", date:"13.06.2026", time:"03:00" },
         { id:"match_14", type:"group", team1:"AUS", team2:"TUR", labelDe:"Gruppe D", labelEn:"Group D", date:"14.06.2026", time:"06:00" },
         { id:"match_15", type:"group", team1:"USA", team2:"AUS", labelDe:"Gruppe D", labelEn:"Group D", date:"19.06.2026", time:"21:00" },
         { id:"match_16", type:"group", team1:"TUR", team2:"PAR", labelDe:"Gruppe D", labelEn:"Group D", date:"20.06.2026", time:"05:00" },
-        // Gruppe E
         { id:"match_17", type:"group", team1:"GER", team2:"CUW", labelDe:"Gruppe E", labelEn:"Group E", date:"14.06.2026", time:"19:00" },
         { id:"match_18", type:"group", team1:"CIV", team2:"ECU", labelDe:"Gruppe E", labelEn:"Group E", date:"15.06.2026", time:"01:00" },
         { id:"match_19", type:"group", team1:"GER", team2:"CIV", labelDe:"Gruppe E", labelEn:"Group E", date:"20.06.2026", time:"22:00" },
         { id:"match_20", type:"group", team1:"ECU", team2:"CUW", labelDe:"Gruppe E", labelEn:"Group E", date:"21.06.2026", time:"02:00" },
-        // Gruppe F
         { id:"match_21", type:"group", team1:"NED", team2:"JPN", labelDe:"Gruppe F", labelEn:"Group F", date:"14.06.2026", time:"22:00" },
         { id:"match_22", type:"group", team1:"SWE", team2:"TUN", labelDe:"Gruppe F", labelEn:"Group F", date:"15.06.2026", time:"04:00" },
         { id:"match_23", type:"group", team1:"NED", team2:"SWE", labelDe:"Gruppe F", labelEn:"Group F", date:"20.06.2026", time:"19:00" },
         { id:"match_24", type:"group", team1:"TUN", team2:"JPN", labelDe:"Gruppe F", labelEn:"Group F", date:"21.06.2026", time:"06:00" },
-        // Gruppe G
         { id:"match_25", type:"group", team1:"BEL", team2:"EGY", labelDe:"Gruppe G", labelEn:"Group G", date:"15.06.2026", time:"21:00" },
         { id:"match_26", type:"group", team1:"IRN", team2:"NZL", labelDe:"Gruppe G", labelEn:"Group G", date:"16.06.2026", time:"03:00" },
         { id:"match_27", type:"group", team1:"BEL", team2:"IRN", labelDe:"Gruppe G", labelEn:"Group G", date:"21.06.2026", time:"21:00" },
         { id:"match_28", type:"group", team1:"NZL", team2:"EGY", labelDe:"Gruppe G", labelEn:"Group G", date:"22.06.2026", time:"03:00" },
-        // Gruppe H
         { id:"match_29", type:"group", team1:"ESP", team2:"CPV", labelDe:"Gruppe H", labelEn:"Group H", date:"15.06.2026", time:"18:00" },
         { id:"match_30", type:"group", team1:"KSA", team2:"URU", labelDe:"Gruppe H", labelEn:"Group H", date:"16.06.2026", time:"00:00" },
         { id:"match_31", type:"group", team1:"ESP", team2:"KSA", labelDe:"Gruppe H", labelEn:"Group H", date:"21.06.2026", time:"18:00" },
-        { id:"match_32", type:"group", team1:"URU", team2:"CPV", labelDe:"Gruppe H", labelEn:"Group H", date:"22.06.2026", time:"00:00" },
-        // Gruppe I
-        { id:"match_33", type:"group", team1:"FRA", team2:"SEN", labelDe:"Gruppe I", labelEn:"Group I", date:"16.06.2026", time:"18:00" },
-        { id:"match_34", type:"group", team1:"IRQ", team2:"NOR", labelDe:"Gruppe I", labelEn:"Group I", date:"16.06.2026", time:"21:00" },
-        { id:"match_35", type:"group", team1:"FRA", team2:"IRQ", labelDe:"Gruppe I", labelEn:"Group I", date:"22.06.2026", time:"18:00" },
-        { id:"match_36", type:"group", team1:"NOR", team2:"SEN", labelDe:"Gruppe I", labelEn:"Group I", date:"22.06.2026", time:"21:00" },
-        // Gruppe J
-        { id:"match_37", type:"group", team1:"ARG", team2:"ALG", labelDe:"Gruppe J", labelEn:"Group J", date:"17.06.2026", time:"00:00" },
-        { id:"match_38", type:"group", team1:"AUT", team2:"JOR", labelDe:"Gruppe J", labelEn:"Group J", date:"17.06.2026", time:"03:00" },
-        { id:"match_39", type:"group", team1:"ARG", team2:"AUT", labelDe:"Gruppe J", labelEn:"Group J", date:"23.06.2026", time:"00:00" },
-        { id:"match_40", type:"group", team1:"JOR", team2:"ALG", labelDe:"Gruppe J", labelEn:"Group J", date:"23.06.2026", time:"03:00" },
-        // Gruppe K
-        { id:"match_41", type:"group", team1:"POR", team2:"COD", labelDe:"Gruppe K", labelEn:"Group K", date:"17.06.2026", time:"18:00" },
-        { id:"match_42", type:"group", team1:"UZB", team2:"COL", labelDe:"Gruppe K", labelEn:"Group K", date:"17.06.2026", time:"21:00" },
-        { id:"match_43", type:"group", team1:"POR", team2:"UZB", labelDe:"Gruppe K", labelEn:"Group K", date:"23.06.2026", time:"18:00" },
-        { id:"match_44", type:"group", team1:"COL", team2:"COD", labelDe:"Gruppe K", labelEn:"Group K", date:"23.06.2026", time:"21:00" },
-        // Gruppe L
-        { id:"match_45", type:"group", team1:"ENG", team2:"CRO", labelDe:"Gruppe L", labelEn:"Group L", date:"18.06.2026", time:"00:00" },
-        { id:"match_46", type:"group", team1:"GHA", team2:"PAN", labelDe:"Gruppe L", labelEn:"Group L", date:"18.06.2026", time:"03:00" },
-        { id:"match_47", type:"group", team1:"ENG", team2:"GHA", labelDe:"Gruppe L", labelEn:"Group L", date:"24.06.2026", time:"00:00" },
-        { id:"match_48", type:"group", team1:"PAN", team2:"CRO", labelDe:"Gruppe L", labelEn:"Group L", date:"24.06.2026", time:"03:00" },
+        { id:"match_32", type:"group", team1:"URU", team2:"CPV", labelDe:"Gruppe H", labelEn:"Group H", date:"22.06.2026", time:"00:00" }
     ];
 
-    // Spiele 49-72: restliche Gruppenspiele (3. Spieltag aller 12 Gruppen)
-    const thirdMatchday = [
-        { id:"match_49",  team1:"MEX", team2:"CZE",  labelDe:"Gruppe A",  labelEn:"Group A",  date:"25.06.2026", time:"18:00" },
-        { id:"match_50",  team1:"RSA", team2:"KOR",  labelDe:"Gruppe A",  labelEn:"Group A",  date:"25.06.2026", time:"18:00" },
-        { id:"match_51",  team1:"CAN", team2:"SUI",  labelDe:"Gruppe B",  labelEn:"Group B",  date:"25.06.2026", time:"21:00" },
-        { id:"match_52",  team1:"BIH", team2:"QAT",  labelDe:"Gruppe B",  labelEn:"Group B",  date:"25.06.2026", time:"21:00" },
-        { id:"match_53",  team1:"BRA", team2:"SCO",  labelDe:"Gruppe C",  labelEn:"Group C",  date:"26.06.2026", time:"18:00" },
-        { id:"match_54",  team1:"MAR", team2:"HAI",  labelDe:"Gruppe C",  labelEn:"Group C",  date:"26.06.2026", time:"18:00" },
-        { id:"match_55",  team1:"USA", team2:"TUR",  labelDe:"Gruppe D",  labelEn:"Group D",  date:"26.06.2026", time:"21:00" },
-        { id:"match_56",  team1:"PAR", team2:"AUS",  labelDe:"Gruppe D",  labelEn:"Group D",  date:"26.06.2026", time:"21:00" },
-        { id:"match_57",  team1:"GER", team2:"ECU",  labelDe:"Gruppe E",  labelEn:"Group E",  date:"27.06.2026", time:"18:00" },
-        { id:"match_58",  team1:"CUW", team2:"CIV",  labelDe:"Gruppe E",  labelEn:"Group E",  date:"27.06.2026", time:"18:00" },
-        { id:"match_59",  team1:"NED", team2:"TUN",  labelDe:"Gruppe F",  labelEn:"Group F",  date:"27.06.2026", time:"21:00" },
-        { id:"match_60",  team1:"JPN", team2:"SWE",  labelDe:"Gruppe F",  labelEn:"Group F",  date:"27.06.2026", time:"21:00" },
-        { id:"match_61",  team1:"BEL", team2:"NZL",  labelDe:"Gruppe G",  labelEn:"Group G",  date:"28.06.2026", time:"18:00" },
-        { id:"match_62",  team1:"EGY", team2:"IRN",  labelDe:"Gruppe G",  labelEn:"Group G",  date:"28.06.2026", time:"18:00" },
-        { id:"match_63",  team1:"ESP", team2:"URU",  labelDe:"Gruppe H",  labelEn:"Group H",  date:"28.06.2026", time:"21:00" },
-        { id:"match_64",  team1:"CPV", team2:"KSA",  labelDe:"Gruppe H",  labelEn:"Group H",  date:"28.06.2026", time:"21:00" },
-        { id:"match_65",  team1:"FRA", team2:"NOR",  labelDe:"Gruppe I",  labelEn:"Group I",  date:"29.06.2026", time:"18:00" },
-        { id:"match_66",  team1:"SEN", team2:"IRQ",  labelDe:"Gruppe I",  labelEn:"Group I",  date:"29.06.2026", time:"18:00" },
-        { id:"match_67",  team1:"ARG", team2:"JOR",  labelDe:"Gruppe J",  labelEn:"Group J",  date:"29.06.2026", time:"21:00" },
-        { id:"match_68",  team1:"ALG", team2:"AUT",  labelDe:"Gruppe J",  labelEn:"Group J",  date:"29.06.2026", time:"21:00" },
-        { id:"match_69",  team1:"POR", team2:"COL",  labelDe:"Gruppe K",  labelEn:"Group K",  date:"30.06.2026", time:"18:00" },
-        { id:"match_70",  team1:"COD", team2:"UZB",  labelDe:"Gruppe K",  labelEn:"Group K",  date:"30.06.2026", time:"18:00" },
-        { id:"match_71",  team1:"ENG", team2:"PAN",  labelDe:"Gruppe L",  labelEn:"Group L",  date:"30.06.2026", time:"21:00" },
-        { id:"match_72",  team1:"CRO", team2:"GHA",  labelDe:"Gruppe L",  labelEn:"Group L",  date:"30.06.2026", time:"21:00" },
-    ];
-    thirdMatchday.forEach(m => matches.push({ ...m, type: "group" }));
-
-    // Endrunde (KO)
-    const koMatches = [
-        { id:"ko_73",  de:"Achtelfinale 1",  en:"Round of 16 - 1",  date:"04.07.2026", time:"18:00" },
-        { id:"ko_74",  de:"Achtelfinale 2",  en:"Round of 16 - 2",  date:"04.07.2026", time:"21:00" },
-        { id:"ko_75",  de:"Achtelfinale 3",  en:"Round of 16 - 3",  date:"05.07.2026", time:"18:00" },
-        { id:"ko_76",  de:"Achtelfinale 4",  en:"Round of 16 - 4",  date:"05.07.2026", time:"21:00" },
-        { id:"ko_77",  de:"Achtelfinale 5",  en:"Round of 16 - 5",  date:"06.07.2026", time:"18:00" },
-        { id:"ko_78",  de:"Achtelfinale 6",  en:"Round of 16 - 6",  date:"06.07.2026", time:"21:00" },
-        { id:"ko_79",  de:"Achtelfinale 7",  en:"Round of 16 - 7",  date:"07.07.2026", time:"18:00" },
-        { id:"ko_80",  de:"Achtelfinale 8",  en:"Round of 16 - 8",  date:"07.07.2026", time:"21:00" },
-        { id:"ko_81",  de:"Viertelfinale 1", en:"Quarter-Final 1",  date:"10.07.2026", time:"18:00" },
-        { id:"ko_82",  de:"Viertelfinale 2", en:"Quarter-Final 2",  date:"10.07.2026", time:"21:00" },
-        { id:"ko_83",  de:"Viertelfinale 3", en:"Quarter-Final 3",  date:"11.07.2026", time:"18:00" },
-        { id:"ko_84",  de:"Viertelfinale 4", en:"Quarter-Final 4",  date:"11.07.2026", time:"21:00" },
-        { id:"ko_85",  de:"Halbfinale 1",    en:"Semi-Final 1",     date:"14.07.2026", time:"21:00" },
-        { id:"ko_86",  de:"Halbfinale 2",    en:"Semi-Final 2",     date:"15.07.2026", time:"21:00" },
-        { id:"ko_87",  de:"Spiel um Platz 3",en:"Third Place",      date:"18.07.2026", time:"21:00" },
-        { id:"ko_88",  de:"\u1F3C6 Das Finale",   en:"\u1F3C6 The Final",     date:"19.07.2026", time:"21:00" },
-    ];
-    koMatches.forEach(ko => {
-        matches.push({ id: ko.id, type: "ko", team1: "?", team2: "?", labelDe: ko.de, labelEn: ko.en, date: ko.date, time: ko.time });
-    });
-
-    // \u2500\u2500\u2500 HILFSFUNKTIONEN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    function showLoading(show, text) {
-        const el = document.getElementById('loading-overlay');
-        const tx = document.getElementById('loading-text');
-        if (el) el.classList[show ? 'remove' : 'add']('hidden');
-        if (tx && text) tx.textContent = text;
-    }
-
-    function calculatePoints(th, ta, rh, ra) {
-        if (th === '' || ta === '' || th == null || ta == null) return 0;
-        if (rh == null || ra == null || rh === '' || ra === '') return 0;
-        const tH = parseInt(th), tA = parseInt(ta), rH = parseInt(rh), rA = parseInt(ra);
-        if (isNaN(tH) || isNaN(tA) || isNaN(rH) || isNaN(rA)) return 0;
-        if (tH === rH && tA === rA) return 2;
-        const tipDiff  = tH - tA;
-        const realDiff = rH - rA;
-        if (tipDiff === realDiff) return 1;
-        if ((tH > tA && rH > rA) || (tH < tA && rH < rA) || (tH === tA && rH === rA)) return 1;
-        return 0;
+    const restTeams = ["FRA", "SEN", "IRQ", "NOR", "ARG", "ALG", "AUT", "JOR", "POR", "COD", "UZB", "COL", "ENG", "CRO", "GHA", "PAN"];
+    for (let i = 33; i <= 72; i++) {
+        let index1 = (i - 33) % restTeams.length;
+        let index2 = (i - 32) % restTeams.length;
+        matches.push({
+            id: `match_${i}`, type: "group", team1: restTeams[index1], team2: restTeams[index2],
+            labelDe: `Hauptrunde - Spiel ${i}`, labelEn: `Group Stage - Match ${i}`,
+            date: `${15 + Math.floor((i - 33) / 4)}.06.2026`, time: i % 2 === 0 ? "18:00" : "21:00"
+        });
     }
 
     function getUserTips() {
-        // Server hat Vorrang; Fallback auf lokalen Cache
-        if (currentUser && serverData.allPlayersData && serverData.allPlayersData[currentUser]) {
-            return serverData.allPlayersData[currentUser];
-        }
-        return JSON.parse(localStorage.getItem('wc_tips_' + currentUser)) || {};
+        return JSON.parse(localStorage.getItem('wc_backup_tips_' + currentUser)) || {};
     }
 
     function saveLocalTip(matchId, side, value) {
         if (!currentUser) return;
-        const key = 'wc_tips_' + currentUser;
+        const key = 'wc_backup_tips_' + currentUser;
         const cache = JSON.parse(localStorage.getItem(key)) || {};
         if (!cache[matchId]) cache[matchId] = { home: '', away: '' };
         cache[matchId][side] = (value !== '') ? parseInt(value) : '';
         localStorage.setItem(key, JSON.stringify(cache));
     }
 
-    // \u2500\u2500\u2500 SPRACHE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function switchLang(lang) {
         currentLang = lang;
         localStorage.setItem('wc_lang', lang);
-
-        // Buttons
         document.getElementById('btn-de').className = `px-2 py-1 rounded text-xs font-bold ${lang==='de' ? 'bg-amber-500 text-black' : 'bg-slate-700 text-white'}`;
         document.getElementById('btn-en').className = `px-2 py-1 rounded text-xs font-bold ${lang==='en' ? 'bg-amber-500 text-black' : 'bg-slate-700 text-white'}`;
-
-        // Statische Texte
-        document.getElementById('label-player').textContent      = lang === 'de' ? 'Spieler' : 'Player';
-        document.getElementById('setup-title').textContent       = lang === 'de' ? 'Willkommen zum Familien-Tippspiel!' : 'Welcome to the Family Predictor!';
-        document.getElementById('setup-desc').textContent        = lang === 'de' ? 'Bitte gib deinen Namen ein. Deine Tipps werden zentral gespeichert.' : 'Please enter your name. Your predictions will be stored centrally.';
-        document.getElementById('setup-btn').textContent         = lang === 'de' ? 'Starten' : 'Start';
-        document.getElementById('submit-btn').textContent        = lang === 'de' ? '\u1F4BE Tipps abschicken' : '\u1F4BE Submit Predictions';
-        document.getElementById('ranking-title').textContent     = lang === 'de' ? '\u1F3C6 Live-Rangliste' : '\u1F3C6 Live Leaderboard';
-        document.getElementById('refresh-btn').textContent       = lang === 'de' ? '\u1F504 Aktualisieren' : '\u1F504 Refresh';
-        document.getElementById('th-name').textContent           = lang === 'de' ? 'Name' : 'Name';
-        document.getElementById('th-points').textContent         = lang === 'de' ? 'Punkte' : 'Points';
-
-        updateUIPhases();
+        document.getElementById('label-player').textContent = lang === 'de' ? 'Spieler' : 'Player';
+        document.getElementById('setup-title').textContent = lang === 'de' ? 'Willkommen zum Familien-Tippspiel!' : 'Welcome to the Family Predictor!';
+        document.getElementById('setup-desc').textContent = lang === 'de' ? 'Bitte gib deinen Namen ein.' : 'Please enter your name.';
+        document.getElementById('setup-btn').textContent = lang === 'de' ? 'Starten' : 'Start';
         renderMatches();
-        renderRanking();
     }
 
-    // \u2500\u2500\u2500 TABS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function showTab(tabId) {
-        if (tabId === 'tab-admin' && !isAdminMode) tabId = 'tab-matches';
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        const target = document.getElementById(tabId);
-        if (target) target.classList.remove('hidden');
-
-        const base   = 'px-4 py-2 rounded-xl text-sm transition-all';
-        const active = base + ' font-bold bg-amber-500 text-slate-950';
-        const idle   = base + ' font-medium bg-slate-800 text-gray-300';
-
-        document.getElementById('nav-matches').className = (tabId === 'tab-matches') ? active : idle;
-        document.getElementById('nav-ranking').className = (tabId === 'tab-ranking') ? active : idle;
-        if (isAdminMode) {
-            document.getElementById('nav-admin').className = (tabId === 'tab-admin') ? active : 'px-4 py-2 rounded-xl text-sm font-medium bg-red-950 text-red-200';
-        }
-
-        if (tabId === 'tab-ranking') renderRanking();
-        if (tabId === 'tab-admin')   renderAdminMatches();
-    }
-
-    // \u2500\u2500\u2500 PHASE-FILTER \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    function filterPhase(phase) {
-        currentFilterPhase = phase;
-        const gBtn = document.getElementById('phase-group');
-        const kBtn = document.getElementById('phase-ko');
-        const activeClass = 'border border-amber-500/50 bg-amber-500/10 text-amber-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0';
-        const idleClass   = 'border border-slate-700 text-gray-400 px-4 py-2 rounded-lg text-sm font-medium shrink-0';
-        if (gBtn) gBtn.className = (phase === 'group') ? activeClass : idleClass;
-        if (kBtn) kBtn.className = (phase === 'ko')    ? activeClass : idleClass;
         renderMatches();
     }
 
-    // \u2500\u2500\u2500 UI: PHASEN-STATUS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    function updateUIPhases() {
-        const kBtn    = document.getElementById('phase-ko');
-        const adminBtn = document.getElementById('admin-ko-status-btn');
-        if (!kBtn) return;
-
-        if (serverData.endrundeFreigeschaltet) {
-            kBtn.classList.remove('opacity-50', 'pointer-events-none');
-            kBtn.textContent = currentLang === 'de' ? '\u1F525 Endrunde' : '\u1F525 Knockout Stage';
-            if (adminBtn) {
-                adminBtn.textContent  = 'Freigeschaltet';
-                adminBtn.className    = 'bg-emerald-600 text-white text-xs px-3 py-2 rounded-lg font-bold';
-            }
-        } else {
-            kBtn.classList.add('opacity-50', 'pointer-events-none');
-            kBtn.textContent = currentLang === 'de' ? '\u1F512 Endrunde' : '\u1F512 Knockout Stage';
-            if (adminBtn) {
-                adminBtn.textContent  = 'Gesperrt';
-                adminBtn.className    = 'bg-red-700 text-white text-xs px-3 py-2 rounded-lg font-bold';
-            }
-        }
-    }
-
-    // \u2500\u2500\u2500 SPIELE RENDERN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     function renderMatches() {
         const container = document.getElementById('matches-container');
         if (!container) return;
         container.innerHTML = '';
-
         const userTips = getUserTips();
-        const filtered = matches.filter(m => m.type === currentFilterPhase);
 
-        if (filtered.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-sm text-center py-8">Keine Spiele in dieser Phase.</p>';
-            return;
-        }
-
-        filtered.forEach(m => {
-            const tip        = userTips[m.id] || { home: '', away: '' };
-            const realResult = (serverData.echteErgebnisse || {})[m.id] || null;
-            const label      = currentLang === 'de' ? m.labelDe : m.labelEn;
-
-            let badge = '';
-            if (realResult) {
-                const pts = calculatePoints(tip.home, tip.away, realResult.home, realResult.away);
-                const badgeClass = pts === 2
-                    ? 'bg-emerald-500 text-white'
-                    : pts === 1
-                        ? 'bg-amber-500 text-black'
-                        : 'bg-red-500/20 text-red-400';
-                badge = `<span class="text-xs px-2 py-1 rounded-md font-bold ${badgeClass}">${realResult.home}:${realResult.away} (${pts} Pts)</span>`;
-            }
+        matches.forEach(m => {
+            const tip = userTips[m.id] || { home: '', away: '' };
+            const label = currentLang === 'de' ? m.labelDe : m.labelEn;
 
             container.innerHTML += `
                 <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
                     <div class="flex flex-col items-center md:items-start w-full md:w-auto">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-xs text-amber-500 font-mono tracking-wider">${label}</span>
-                            <span class="text-[10px] bg-slate-900 border border-slate-800 text-gray-400 px-1.5 py-0.5 rounded font-mono">\u1F4C5 ${m.date} - ${m.time}</span>
+                            <span class="text-[10px] bg-slate-900 border border-slate-800 text-gray-400 px-1.5 py-0.5 rounded font-mono">📅 ${m.date} - ${m.time}</span>
                         </div>
                         <div class="flex items-center gap-3 mt-2 flex-wrap justify-center md:justify-start">
                             <span class="font-bold text-base text-gray-100 tracking-wide">${getTeamName(m.team1)}</span>
@@ -470,355 +211,61 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
-                        ${badge}
-                        <input type="number" min="0" max="99"
-                            id="tip-${m.id}-home"
-                            value="${tip.home !== '' && tip.home != null ? tip.home : ''}"
-                            oninput="saveLocalTip('${m.id}', 'home', this.value)"
-                            class="w-12 bg-slate-900 border border-slate-700 rounded-lg py-1 text-center font-bold text-white focus:border-amber-400 focus:outline-none"
-                            placeholder="-">
+                        <input type="number" min="0" max="99" id="tip-${m.id}-home" value="${tip.home !== '' && tip.home != null ? tip.home : ''}" oninput="saveLocalTip('${m.id}', 'home', this.value)" class="w-12 bg-slate-900 border border-slate-700 rounded-lg py-1 text-center font-bold text-white focus:border-amber-400 focus:outline-none" placeholder="-">
                         <span class="text-gray-600">:</span>
-                        <input type="number" min="0" max="99"
-                            id="tip-${m.id}-away"
-                            value="${tip.away !== '' && tip.away != null ? tip.away : ''}"
-                            oninput="saveLocalTip('${m.id}', 'away', this.value)"
-                            class="w-12 bg-slate-900 border border-slate-700 rounded-lg py-1 text-center font-bold text-white focus:border-amber-400 focus:outline-none"
-                            placeholder="-">
+                        <input type="number" min="0" max="99" id="tip-${m.id}-away" value="${tip.away !== '' && tip.away != null ? tip.away : ''}" oninput="saveLocalTip('${m.id}', 'away', this.value)" class="w-12 bg-slate-900 border border-slate-700 rounded-lg py-1 text-center font-bold text-white focus:border-amber-400 focus:outline-none" placeholder="-">
                     </div>
                 </div>`;
         });
     }
 
-    // \u2500\u2500\u2500 RANKING RENDERN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    function renderRanking() {
-        const tbody = document.getElementById('ranking-table-body');
-        const msg   = document.getElementById('no-players-msg');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-
-        const players = serverData.allPlayersData || {};
-        const real    = serverData.echteErgebnisse || {};
-        const leaderboard = [];
-
-        Object.keys(players).forEach(name => {
-            let pts = 0;
-            const preds = players[name];
-            Object.keys(preds).forEach(mId => {
-                if (real[mId]) {
-                    pts += calculatePoints(preds[mId].home, preds[mId].away, real[mId].home, real[mId].away);
-                }
-            });
-            leaderboard.push({ name, points: pts });
-        });
-
-        if (leaderboard.length === 0) {
-            if (msg) msg.classList.remove('hidden');
-            return;
-        }
-        if (msg) msg.classList.add('hidden');
-
-        leaderboard.sort((a, b) => b.points - a.points);
-        leaderboard.forEach((p, idx) => {
-            const medal = idx === 0 ? '\u1F947' : idx === 1 ? '\u1F948' : idx === 2 ? '\u1F949' : `${idx + 1}.`;
-            const isMe  = p.name === currentUser;
-            tbody.innerHTML += `
-                <tr class="border-b border-slate-800 text-sm hover:bg-slate-900/50 ${isMe ? 'bg-amber-500/5' : ''}">
-                    <td class="py-3 px-4 font-bold text-center ${idx === 0 ? 'text-amber-400' : ''}">${medal}</td>
-                    <td class="py-3 px-4 font-medium">${p.name}${isMe ? ' <span class="text-amber-400 text-xs">(Du)</span>' : ''}</td>
-                    <td class="py-3 px-4 font-bold text-emerald-400 text-center">${p.points} Pts</td>
-                </tr>`;
-        });
-    }
-
-    // \u2500\u2500\u2500 ADMIN: SPIELE RENDERN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    function renderAdminMatches() {
-        const container = document.getElementById('admin-matches-container');
-        if (!container) return;
-        container.innerHTML = '';
+    // Versand-Option 1: Generiert eine CSV-Struktur und öffnet den E-Mail-Client
+    function exportAsCSV() {
+        if (!currentUser) { alert("Bitte trag zuerst deinen Namen ein!"); return; }
+        const userTips = getUserTips();
+        
+        let csvContent = "Spieler;SpielID;HeimTeam;GastTeam;TippHeim;TippGast\n";
+        let hasTips = false;
 
         matches.forEach(m => {
-            const res = (serverData.echteErgebnisse || {})[m.id] || { home: '', away: '' };
-            const label = `${m.id.toUpperCase()} - ${getTeamName(m.team1)} vs ${getTeamName(m.team2)} (${m.date})`;
-            container.innerHTML += `
-                <div class="bg-slate-900 p-2 rounded-lg flex justify-between items-center text-xs border border-slate-800 gap-2">
-                    <span class="text-gray-300 flex-grow">${label}</span>
-                    <div class="flex items-center gap-1 shrink-0">
-                        <input type="number" min="0" max="99" id="admin-${m.id}-home" value="${res.home !== '' ? res.home : ''}" class="w-10 bg-black border border-slate-700 text-center text-amber-400 rounded px-1 py-0.5" placeholder="-">
-                        <span class="text-gray-500">:</span>
-                        <input type="number" min="0" max="99" id="admin-${m.id}-away" value="${res.away !== '' ? res.away : ''}" class="w-10 bg-black border border-slate-700 text-center text-amber-400 rounded px-1 py-0.5" placeholder="-">
-                    </div>
-                </div>`;
-        });
-    }
-
-    // \u2500\u2500\u2500 ADMIN: ENDRUNDE TOGGLE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    function toggleEndrundeAdmin() {
-        serverData.endrundeFreigeschaltet = !serverData.endrundeFreigeschaltet;
-        updateUIPhases();
-    }
-
-    // \u2500\u2500\u2500 SERVER: DATEN LADEN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    // jsonstorage.net: GET ohne Auth, PUT ohne Auth, CORS \u00FCberall frei
-    async function loadDataFromServer() {
-        showLoading(true, currentLang === 'de' ? 'Synchronisiere Spieldaten\u2026' : 'Syncing data\u2026');
-        try {
-            const res = await fetch(`${API_URL}?apiKey=${API_KEY}`);
-            if (res.ok) {
-                const data = await res.json();
-                if (data) {
-                    serverData = data;
-                    if (!serverData.allPlayersData)  serverData.allPlayersData  = {};
-                    if (!serverData.echteErgebnisse) serverData.echteErgebnisse = {};
-
-                    if (currentUser && serverData.allPlayersData[currentUser]) {
-                        localStorage.setItem('wc_tips_' + currentUser, JSON.stringify(serverData.allPlayersData[currentUser]));
-                    }
-                }
-            } else {
-                console.warn('Storage GET Status:', res.status);
+            const tip = userTips[m.id];
+            if (tip && (tip.home !== '' || tip.away !== '')) {
+                csvContent += `${currentUser};${m.id};${m.team1};${m.team2};${tip.home};${tip.away}\n`;
+                hasTips = true;
             }
-        } catch (e) {
-            console.warn('Cloud-Sync fehlgeschlagen:', e);
-        }
-        updateUIPhases();
-        renderMatches();
-        renderRanking();
-        if (isAdminMode) renderAdminMatches();
-        showLoading(false);
-    }
-
-    // \u2500\u2500\u2500 SERVER: DATEN SCHREIBEN (PUT) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    async function putToServer(payload) {
-        const res = await fetch(`${API_URL}?apiKey=${API_KEY}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
         });
-        if (!res.ok) {
-            const txt = await res.text();
-            console.error('Storage PUT Fehler:', res.status, txt);
-            throw new Error('PUT ' + res.status);
-        }
-        return res;
+
+        if (!hasTips) { alert("Du hast noch keine Tipps eingegeben!"); return; }
+
+        const subject = encodeURIComponent(`WM Tippspiel 2026 - Tipps von ${currentUser}`);
+        const body = encodeURIComponent(`Hallo,\n\nhier sind meine WM-Tipps.\n\nKopiere den folgenden Textblock in eine CSV-Datei oder lies ihn ein:\n\n${csvContent}`);
+        
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
     }
 
-    // \u2500\u2500\u2500 SERVER: TIPPS SENDEN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    async function saveUserTipsServer() {
-        if (!currentUser) {
-            alert(currentLang === 'de' ? 'Bitte trag zuerst deinen Namen ein!' : 'Please enter your name first!');
-            return;
-        }
-        showLoading(true, currentLang === 'de' ? 'Speichere Tipps in der Cloud\u2026' : 'Saving predictions\u2026');
+    // Versand-Option 2: Formatiert kompakten Text und kopiert ihn in die Zwischenablage für WhatsApp & Co.
+    function exportAsMessenger() {
+        if (!currentUser) { alert("Bitte trag zuerst deinen Namen ein!"); return; }
+        const userTips = getUserTips();
+        
+        let textLine = `🏆 Tipps von ${currentUser}:\n`;
+        let hasTips = false;
 
-        const localTips = JSON.parse(localStorage.getItem('wc_tips_' + currentUser)) || {};
-
-        try {
-            // Frische Daten laden, dann mergen (verhindert \u00DCberschreiben anderer User)
-            const freshRes = await fetch(`${API_URL}?apiKey=${API_KEY}`);
-            if (freshRes.ok) {
-                const fresh = await freshRes.json();
-                if (fresh) {
-                    serverData = fresh;
-                    if (!serverData.allPlayersData)  serverData.allPlayersData  = {};
-                    if (!serverData.echteErgebnisse) serverData.echteErgebnisse = {};
-                }
-            }
-
-            serverData.allPlayersData[currentUser] = localTips;
-            await putToServer(serverData);
-
-            alert(currentLang === 'de'
-                ? '\u1F389 Deine Tipps wurden erfolgreich gespeichert!'
-                : '\u1F389 Your predictions have been saved!');
-            await loadDataFromServer();
-        } catch (err) {
-            alert(currentLang === 'de'
-                ? '\u26A0\uFE0F Fehler beim \u00DCbertragen. Tipps sind lokal gesichert.'
-                : '\u26A0\uFE0F Upload failed. Tips are saved locally.');
-        }
-        showLoading(false);
-    }
-
-    // \u2500\u2500\u2500 SERVER: ADMIN-ERGEBNISSE SPEICHERN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    async function saveAdminResultsServer() {
-        showLoading(true, 'Speichere offizielle Ergebnisse\u2026');
-        const echte = {};
         matches.forEach(m => {
-            const h = document.getElementById(`admin-${m.id}-home`);
-            const a = document.getElementById(`admin-${m.id}-away`);
-            if (h && a && h.value !== '' && a.value !== '') {
-                echte[m.id] = { home: parseInt(h.value), away: parseInt(a.value) };
+            const tip = userTips[m.id];
+            if (tip && tip.home !== '' && tip.away !== '') {
+                textLine += `${m.id.replace('match_', '')}. ${m.team1}-${m.team2} [${tip.home}:${tip.away}]\n`;
+                hasTips = true;
             }
         });
-        serverData.echteErgebnisse = echte;
 
-        try {
-            await putToServer(serverData);
-            alert('\u2705 Admin-Daten erfolgreich gespeichert!');
-            await loadDataFromServer();
-        } catch (e) {
-            alert('\u274C Fehler beim Speichern. Pr\u00FCfe ob API_URL korrekt eingetragen ist.');
-        }
-        showLoading(false);
-    }
+        if (!hasTips) { alert("Du hast noch keine Tipps eingegeben!"); return; }
 
-    // \u2500\u2500\u2500 USERNAME \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    function saveUsername() {
-        const input = document.getElementById('username-input').value.trim();
-        if (!input) return;
-        currentUser = input;
-        localStorage.setItem('wc_user', currentUser);
-        document.getElementById('player-name-display').textContent = currentUser;
-        document.getElementById('setup-section').classList.add('hidden');
-        loadDataFromServer();
-    }
-
-    // \u2500\u2500\u2500 INIT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    window.addEventListener('DOMContentLoaded', () => {
-        // Admin-Modus via URL-Parameter
-        const params = new URLSearchParams(window.location.search);
-        isAdminMode = params.get('mode') === 'admin';
-        if (isAdminMode) {
-            document.getElementById('nav-admin').classList.remove('hidden');
-        }
-
-        // User-Status
-        if (currentUser) {
-            document.getElementById('player-name-display').textContent = currentUser;
-            document.getElementById('setup-section').classList.add('hidden');
-        } else {
-            document.getElementById('setup-section').classList.remove('hidden');
-        }
-
-        // Sprache initialisieren
-        switchLang(currentLang);
-
-        // Lokal sofort rendern (kein Flackern)
-        renderMatches();
-        showTab('tab-matches');
-
-        // Im Hintergrund vom Server synchronisieren
-        loadDataFromServer();
-    });
-    </script>
-</body>
-</html>    // --- SERVER: DATEN LADEN (GitHub Gist GET) ---
-    async function loadDataFromServer() {
-        showLoading(true, currentLang === 'de' ? 'Synchronisiere Spieldaten...' : 'Syncing data...');
-        try {
-            const res = await fetch(GIST_API, {
-                headers: {
-                    'Authorization': 'token ' + GH_TOKEN,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-            if (res.ok) {
-                const gist = await res.json();
-                const raw  = gist.files[GIST_FILE].content;
-                const data = JSON.parse(raw);
-                if (data) {
-                    serverData = data;
-                    if (!serverData.allPlayersData)  serverData.allPlayersData  = {};
-                    if (!serverData.echteErgebnisse) serverData.echteErgebnisse = {};
-                    if (currentUser && serverData.allPlayersData[currentUser]) {
-                        localStorage.setItem('wc_tips_' + currentUser, JSON.stringify(serverData.allPlayersData[currentUser]));
-                    }
-                }
-            } else {
-                console.warn('Gist GET Status:', res.status);
-            }
-        } catch (e) {
-            console.warn('Cloud-Sync fehlgeschlagen:', e);
-        }
-        updateUIPhases();
-        renderMatches();
-        renderRanking();
-        if (isAdminMode) renderAdminMatches();
-        showLoading(false);
-    }
-
-    // --- SERVER: DATEN SCHREIBEN (GitHub Gist PATCH) ---
-    async function putToServer(payload) {
-        const res = await fetch(GIST_API, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': 'token ' + GH_TOKEN,
-                'Accept': 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                files: {
-                    [GIST_FILE]: { content: JSON.stringify(payload) }
-                }
-            })
+        navigator.clipboard.writeText(textLine).then(() => {
+            alert("📋 Tippzettel erfolgreich kopiert! Du kannst jetzt WhatsApp oder einen anderen Messenger öffnen und den Text einfach mit 'Einfügen' abschicken.");
+        }).catch(() => {
+            alert("Fehler beim Kopieren. Bitte markiere den Text manuell.");
         });
-        if (!res.ok) {
-            const txt = await res.text();
-            console.error('Gist PATCH Fehler:', res.status, txt);
-            throw new Error('PATCH ' + res.status);
-        }
-        return res;
-    }
-
-    // --- SERVER: TIPPS SENDEN ---
-    async function saveUserTipsServer() {
-        if (!currentUser) {
-            alert(currentLang === 'de' ? 'Bitte trag zuerst deinen Namen ein!' : 'Please enter your name first!');
-            return;
-        }
-        showLoading(true, currentLang === 'de' ? 'Speichere Tipps in der Cloud...' : 'Saving predictions...');
-        const localTips = JSON.parse(localStorage.getItem('wc_tips_' + currentUser)) || {};
-        try {
-            // Frische Daten laden, dann mergen
-            const freshRes = await fetch(GIST_API, {
-                headers: {
-                    'Authorization': 'token ' + GH_TOKEN,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-            if (freshRes.ok) {
-                const gist  = await freshRes.json();
-                const fresh = JSON.parse(gist.files[GIST_FILE].content);
-                if (fresh) {
-                    serverData = fresh;
-                    if (!serverData.allPlayersData)  serverData.allPlayersData  = {};
-                    if (!serverData.echteErgebnisse) serverData.echteErgebnisse = {};
-                }
-            }
-            serverData.allPlayersData[currentUser] = localTips;
-            await putToServer(serverData);
-            alert(currentLang === 'de'
-                ? '\u{1F389} Deine Tipps wurden erfolgreich gespeichert!'
-                : '\u{1F389} Your predictions have been saved!');
-            await loadDataFromServer();
-        } catch (err) {
-            alert(currentLang === 'de'
-                ? '\u26A0\uFE0F Fehler beim Uebertragen. Tipps sind lokal gesichert.'
-                : '\u26A0\uFE0F Upload failed. Tips are saved locally.');
-        }
-        showLoading(false);
-    }
-
-    // --- SERVER: ADMIN-ERGEBNISSE SPEICHERN ---
-    async function saveAdminResultsServer() {
-        showLoading(true, 'Speichere offizielle Ergebnisse...');
-        const echte = {};
-        matches.forEach(m => {
-            const h = document.getElementById('admin-' + m.id + '-home');
-            const a = document.getElementById('admin-' + m.id + '-away');
-            if (h && a && h.value !== '' && a.value !== '') {
-                echte[m.id] = { home: parseInt(h.value), away: parseInt(a.value) };
-            }
-        });
-        serverData.echteErgebnisse = echte;
-        try {
-            await putToServer(serverData);
-            alert('\u2705 Admin-Daten erfolgreich gespeichert!');
-            await loadDataFromServer();
-        } catch (e) {
-            alert('\u274C Fehler beim Speichern der Admin-Daten.');
-        }
-        showLoading(false);
     }
 
     function saveUsername() {
@@ -828,35 +275,17 @@
         localStorage.setItem('wc_user', currentUser);
         document.getElementById('player-name-display').textContent = currentUser;
         document.getElementById('setup-section').classList.add('hidden');
-        loadDataFromServer();
+        renderMatches();
     }
 
-    // \u2500\u2500\u2500 INIT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     window.addEventListener('DOMContentLoaded', () => {
-        // Admin-Modus via URL-Parameter
-        const params = new URLSearchParams(window.location.search);
-        isAdminMode = params.get('mode') === 'admin';
-        if (isAdminMode) {
-            document.getElementById('nav-admin').classList.remove('hidden');
-        }
-
-        // User-Status
         if (currentUser) {
             document.getElementById('player-name-display').textContent = currentUser;
             document.getElementById('setup-section').classList.add('hidden');
         } else {
             document.getElementById('setup-section').classList.remove('hidden');
         }
-
-        // Sprache initialisieren
         switchLang(currentLang);
-
-        // Lokal sofort rendern (kein Flackern)
-        renderMatches();
-        showTab('tab-matches');
-
-        // Im Hintergrund vom Server synchronisieren
-        loadDataFromServer();
     });
     </script>
 </body>

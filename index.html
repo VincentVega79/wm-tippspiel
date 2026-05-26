@@ -115,19 +115,12 @@
 
     <script>
     // \u2500\u2500\u2500 KONFIGURATION \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    // jsonstorage.net: Kostenlos, kein Account, kein API-Key, CORS \u00FCberall
-    // Einmalig Setup:
-    //   1. \u00D6ffne https://www.jsonstorage.net/ im Browser
-    //   2. Klicke "Try it now" / erstelle einen neuen Item
-    //   3. F\u00FCge folgenden JSON ein:
-    //      {"allPlayersData":{},"echteErgebnisse":{},"endrundeFreigeschaltet":false}
-    //   4. Nach dem Speichern bekommst du eine URL wie:
-    //      https://api.jsonstorage.net/v1/json/xxx/yyy
-    //   5. Trage diese URL unten ein (API_URL):
-    const API_URL = "https://api.jsonstorage.net/v1/json/68d416a6-2bdb-4321-83a4-20e4a0973204/4cc7d7a3-1b2e-4f53-9050-ffb508adde17";
-    // Beispiel: const API_URL = "https://api.jsonstorage.net/v1/json/abc123/def456";
+    // GitHub Gist als Storage - zuverlaessig, kein CORS-Problem
+    const GIST_ID   = "fd2475d84d7cce5885d386ae3bab217f";
+    const GH_TOKEN  = "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";
+    const GIST_FILE = "tipps.json";
+    const GIST_API  = "https://api.github.com/gists/fd2475d84d7cce5885d386ae3bab217f";
 
-    // \u2500\u2500\u2500 ZUSTAND \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     let currentLang = localStorage.getItem('wc_lang') || 'de';
     let currentUser = localStorage.getItem('wc_user') || '';
     let currentFilterPhase = 'group';
@@ -670,6 +663,164 @@
     }
 
     // \u2500\u2500\u2500 USERNAME \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    function saveUsername() {
+        const input = document.getElementById('username-input').value.trim();
+        if (!input) return;
+        currentUser = input;
+        localStorage.setItem('wc_user', currentUser);
+        document.getElementById('player-name-display').textContent = currentUser;
+        document.getElementById('setup-section').classList.add('hidden');
+        loadDataFromServer();
+    }
+
+    // \u2500\u2500\u2500 INIT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    window.addEventListener('DOMContentLoaded', () => {
+        // Admin-Modus via URL-Parameter
+        const params = new URLSearchParams(window.location.search);
+        isAdminMode = params.get('mode') === 'admin';
+        if (isAdminMode) {
+            document.getElementById('nav-admin').classList.remove('hidden');
+        }
+
+        // User-Status
+        if (currentUser) {
+            document.getElementById('player-name-display').textContent = currentUser;
+            document.getElementById('setup-section').classList.add('hidden');
+        } else {
+            document.getElementById('setup-section').classList.remove('hidden');
+        }
+
+        // Sprache initialisieren
+        switchLang(currentLang);
+
+        // Lokal sofort rendern (kein Flackern)
+        renderMatches();
+        showTab('tab-matches');
+
+        // Im Hintergrund vom Server synchronisieren
+        loadDataFromServer();
+    });
+    </script>
+</body>
+</html>    // --- SERVER: DATEN LADEN (GitHub Gist GET) ---
+    async function loadDataFromServer() {
+        showLoading(true, currentLang === 'de' ? 'Synchronisiere Spieldaten...' : 'Syncing data...');
+        try {
+            const res = await fetch(GIST_API, {
+                headers: {
+                    'Authorization': 'token ' + GH_TOKEN,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            if (res.ok) {
+                const gist = await res.json();
+                const raw  = gist.files[GIST_FILE].content;
+                const data = JSON.parse(raw);
+                if (data) {
+                    serverData = data;
+                    if (!serverData.allPlayersData)  serverData.allPlayersData  = {};
+                    if (!serverData.echteErgebnisse) serverData.echteErgebnisse = {};
+                    if (currentUser && serverData.allPlayersData[currentUser]) {
+                        localStorage.setItem('wc_tips_' + currentUser, JSON.stringify(serverData.allPlayersData[currentUser]));
+                    }
+                }
+            } else {
+                console.warn('Gist GET Status:', res.status);
+            }
+        } catch (e) {
+            console.warn('Cloud-Sync fehlgeschlagen:', e);
+        }
+        updateUIPhases();
+        renderMatches();
+        renderRanking();
+        if (isAdminMode) renderAdminMatches();
+        showLoading(false);
+    }
+
+    // --- SERVER: DATEN SCHREIBEN (GitHub Gist PATCH) ---
+    async function putToServer(payload) {
+        const res = await fetch(GIST_API, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': 'token ' + GH_TOKEN,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                files: {
+                    [GIST_FILE]: { content: JSON.stringify(payload) }
+                }
+            })
+        });
+        if (!res.ok) {
+            const txt = await res.text();
+            console.error('Gist PATCH Fehler:', res.status, txt);
+            throw new Error('PATCH ' + res.status);
+        }
+        return res;
+    }
+
+    // --- SERVER: TIPPS SENDEN ---
+    async function saveUserTipsServer() {
+        if (!currentUser) {
+            alert(currentLang === 'de' ? 'Bitte trag zuerst deinen Namen ein!' : 'Please enter your name first!');
+            return;
+        }
+        showLoading(true, currentLang === 'de' ? 'Speichere Tipps in der Cloud...' : 'Saving predictions...');
+        const localTips = JSON.parse(localStorage.getItem('wc_tips_' + currentUser)) || {};
+        try {
+            // Frische Daten laden, dann mergen
+            const freshRes = await fetch(GIST_API, {
+                headers: {
+                    'Authorization': 'token ' + GH_TOKEN,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            if (freshRes.ok) {
+                const gist  = await freshRes.json();
+                const fresh = JSON.parse(gist.files[GIST_FILE].content);
+                if (fresh) {
+                    serverData = fresh;
+                    if (!serverData.allPlayersData)  serverData.allPlayersData  = {};
+                    if (!serverData.echteErgebnisse) serverData.echteErgebnisse = {};
+                }
+            }
+            serverData.allPlayersData[currentUser] = localTips;
+            await putToServer(serverData);
+            alert(currentLang === 'de'
+                ? '\u{1F389} Deine Tipps wurden erfolgreich gespeichert!'
+                : '\u{1F389} Your predictions have been saved!');
+            await loadDataFromServer();
+        } catch (err) {
+            alert(currentLang === 'de'
+                ? '\u26A0\uFE0F Fehler beim Uebertragen. Tipps sind lokal gesichert.'
+                : '\u26A0\uFE0F Upload failed. Tips are saved locally.');
+        }
+        showLoading(false);
+    }
+
+    // --- SERVER: ADMIN-ERGEBNISSE SPEICHERN ---
+    async function saveAdminResultsServer() {
+        showLoading(true, 'Speichere offizielle Ergebnisse...');
+        const echte = {};
+        matches.forEach(m => {
+            const h = document.getElementById('admin-' + m.id + '-home');
+            const a = document.getElementById('admin-' + m.id + '-away');
+            if (h && a && h.value !== '' && a.value !== '') {
+                echte[m.id] = { home: parseInt(h.value), away: parseInt(a.value) };
+            }
+        });
+        serverData.echteErgebnisse = echte;
+        try {
+            await putToServer(serverData);
+            alert('\u2705 Admin-Daten erfolgreich gespeichert!');
+            await loadDataFromServer();
+        } catch (e) {
+            alert('\u274C Fehler beim Speichern der Admin-Daten.');
+        }
+        showLoading(false);
+    }
+
     function saveUsername() {
         const input = document.getElementById('username-input').value.trim();
         if (!input) return;
